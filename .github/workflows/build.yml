@@ -1,7 +1,4 @@
-# a workflow which:
-# - installs nightly rust
-# - builds every example in halo-hero with rust
-name: Build Examples
+name: Build Book and Examples
 
 on: [push, pull_request]
 

@@ -22,6 +22,7 @@ struct TestConfig<F: Field + Clone> {
 }
 
 impl<F: Field> TestCircuit<F> {
+    // ANCHOR: mul
     /// This region occupies 3 rows.
     fn mul(
         config: &<Self as Circuit<F>>::Config,
@@ -38,14 +39,22 @@ impl<F: Field> TestCircuit<F> {
                     w0 //
                         .and_then(|w0| w1.and_then(|w1| Value::known(w0 * w1)));
 
-                let _w0 = region.assign_advice(|| "assign w0", config.advice, 0, || w0)?;
-                let _w1 = region.assign_advice(|| "assign w1", config.advice, 1, || w1)?;
+                let w0 = region.assign_advice(|| "assign w0", config.advice, 0, || w0)?;
+                let w1 = region.assign_advice(|| "assign w1", config.advice, 1, || w1)?;
                 let w2 = region.assign_advice(|| "assign w2", config.advice, 2, || w2)?;
                 config.q_enable.enable(&mut region, 0)?;
+
+                // ANCHOR: enforce_equality
+                // enforce equality between the w0/w1 cells and the lhs/rhs cells
+                region.constrain_equal(w0.cell(), lhs.cell())?;
+                region.constrain_equal(w1.cell(), rhs.cell())?;
+                // ANCHOR_END: enforce_equality
+
                 Ok(w2)
             },
         )
     }
+    // ANCHOR_END: mul
 
     /// This region occupies 1 row.
     fn unconstrained(
@@ -75,15 +84,15 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         }
     }
 
+    // ANCHOR: enable_equality
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
         // let q_enable = meta.fixed_column();
         let q_enable = meta.complex_selector();
         let advice = meta.advice_column();
 
-        // ANCHOR: enable_equality
         // enable equality constraints
         meta.enable_equality(advice);
-        // ANCHOR: enable_equality
+        // ANCHOR_END: enable_equality
 
         // ANCHOR: new_gate
         // define a new gate:

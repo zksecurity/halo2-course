@@ -39,14 +39,14 @@ impl<F: Field> TestCircuit<F> {
                     v0 //
                         .and_then(|v0| v1.and_then(|v1| Value::known(v0 * v1)));
 
-                let _w0 = region.assign_advice(
+                let w0 = region.assign_advice(
                     || "assign w0", //
                     config.advice,
                     0,
                     || v0,
                 )?;
 
-                let _w1 = region.assign_advice(
+                let w1 = region.assign_advice(
                     || "assign w1", //
                     config.advice,
                     1,

@@ -20,6 +20,11 @@ icon = "./rocket.svg"
 color = "#ff0000"
 aliases = ["ex", "exercise"]
 
+[preprocessor.admonish.directive.custom.think]
+icon = "./rocket.svg"
+color = "#ff0000"
+
+
 [output]
 
 [output.html]

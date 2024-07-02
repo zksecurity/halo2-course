@@ -30,7 +30,6 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         TestConfig { _ph: PhantomData }
     }
 
-    // ANCHOR: synthesize
     #[allow(unused_variables)]
     fn synthesize(
         &self,
@@ -39,7 +38,6 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
     ) -> Result<(), plonk::Error> {
         Ok(())
     }
-    // ANCHOR_END: synthesize
 }
 
 fn main() {

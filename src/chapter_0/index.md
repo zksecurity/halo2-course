@@ -2,6 +2,8 @@
 
 ![](./top.webp)
 
+*More boilerplate than Java.*
+
 ## Setup
 
 For this we are going to need a recent nightly version of Rust:
@@ -45,6 +47,9 @@ Let's start by taking a look at the simplest possible circuit: one that does not
 
 Unfortunately, this still requires quite a bit of boilerplate, here is a minimal example:
 
-```rust
-{{#include ../../halo-hero/examples/nop.rs }}
+```rust,noplaypen
+{{#include ../../halo-hero/examples/nop.rs}}
 ```
+
+We will cover the different parts of this code in more detail in the next chapters.
+
