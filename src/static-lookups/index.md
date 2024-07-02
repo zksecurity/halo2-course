@@ -1,4 +1,4 @@
-# Lookups
+# Static Lookups
 
 ![](./top.webp)
 

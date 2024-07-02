@@ -5,7 +5,7 @@
 - [Many Regions](./multiple-regions/index.md)
 - [Equality Constraints](./equality/index.md)
 - [Instances](./instances/index.md)
-- [Lookups](./static-lookups/index.md)
+- [Static Lookups](./static-lookups/index.md)
 - [Dynamic Lookups](./dynamic-lookups/index.md)
 - [Challenges](./challenges/index.md)
 - [Recursion (Snark-Verifier)](./recursion/index.md)
