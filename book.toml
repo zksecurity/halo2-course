@@ -1,0 +1,27 @@
+[book]
+authors = ["Mathias Hall-Andersen"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Halo Hero"
+
+[build]
+extra-watch-dirs = ["halo-hero"]
+
+[preprocessor]
+
+[preprocessor.admonish]
+command = "mdbook-admonish"
+assets_version = "3.0.2" # do not edit: managed by `mdbook-admonish install`
+
+
+[preprocessor.admonish.directive.custom.exercise]
+icon = "./rocket.svg"
+color = "#ff0000"
+aliases = ["ex", "exercise"]
+
+[output]
+
+[output.html]
+additional-css = ["./mdbook-admonish.css"]
+
