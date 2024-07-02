@@ -90,7 +90,7 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         let tbl_ch = meta.lookup_table_column();
 
         // ANCHOR_END: columns
-
+        // ANCHOR: lookup
         meta.lookup("step", |meta| {
             let st_cur = meta.query_advice(st, Rotation::cur());
             let st_nxt = meta.query_advice(st, Rotation::next());
@@ -102,6 +102,7 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                 (en.clone() * ch, tbl_ch),
             ]
         });
+        // ANCHOR_END: lookup
 
         meta.create_gate("fix state", |meta| {
             let st = meta.query_advice(st, Rotation::cur());

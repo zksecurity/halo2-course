@@ -1,0 +1,44 @@
+# a workflow which:
+# - installs nightly rust
+# - builds every example in halo-hero with rust
+name: Build Examples
+
+on: [push, pull_request]
+
+jobs:
+    examples:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                toolchain: nightly
+                override: true
+
+            - name: install cargo examples
+              run: cargo install cargo-examples
+
+            - name: run every example
+              run: |
+                cd halo-hero
+                cargo examples
+
+    book:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                toolchain: stable
+                override: true
+
+            - name: install mdbook
+              run: cargo install mdbook
+
+            - name: install mdbook-admonish
+              run: cargo install mdbook-admonish
+
+            - name: build book
+              run: mdbook build
