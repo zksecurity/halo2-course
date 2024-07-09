@@ -98,11 +98,11 @@ impl<F: Field> ArithmeticChip<F> {
         rhs: AssignedCell<F, F>,
     ) -> Result<AssignedCell<F, F>, Error> {
         layouter.assign_region(
-            || "mul",
+            || "add",
             |mut region| {
                 let w0 = lhs.value().cloned();
                 let w1 = rhs.value().cloned();
-                let w2 = w0.and_then(|w0| w1.and_then(|w1| Value::known(w0 * w1)));
+                let w2 = w0.and_then(|w0| w1.and_then(|w1| Value::known(w0 + w1)));
 
                 let w0 = region.assign_advice(|| "assign w0", self.w0, 0, || w0)?;
                 let w1 = region.assign_advice(|| "assign w1", self.w1, 0, || w1)?;
