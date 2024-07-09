@@ -4,7 +4,6 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Halo Hero"
-build-dir = "docs"
 
 [build]
 extra-watch-dirs = ["halo-hero"]
