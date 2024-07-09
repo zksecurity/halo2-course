@@ -18,6 +18,14 @@ use halo2_proofs::{
 
 use ff::{Field, PrimeField};
 
+// ANCHOR: rwtable
+struct RwTable {
+    addr: Column<Advice>,    // address
+    value: Column<Advice>,   // value
+    counter: Column<Advice>, // counter
+}
+// ANCHOR_END: rwtable
+
 // ANCHOR: regex
 const ST_A: usize = 1;
 const ST_B: usize = 2;

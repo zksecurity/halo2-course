@@ -73,3 +73,46 @@ It then multiplies them all by the selector `q_regex`, meaning:
 
 This 3-tuple is looked up in a table (which we have not populated yet) of valid state transitions.
 
+
+
+
+### Exercises
+
+The full code is at the end.
+
+```admonish exercise
+*Exercise:*
+
+- Modify the regular expression to be `a*b+c`, i.e. the change of `a+` to `a*`.
+
+```
+
+```admonish hint
+You do not need to change the circuit, only the `REGEX` constant.
+
+However, this exercise is slightly more complicated than it seems at first:
+we must somehow be able to transition from matching `a`s without consuming an `a` 
+(in case there are zero `a`).
+```
+
+```admonish exercise
+*Exercise:*
+
+Create a circuit which computes a single round of [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption.
+```
+
+```admonish hint
+Use three separate lookup tables to represent:
+
+- The S-box. A table with 256 entries.
+- The GF(2^8) multiplication. A table with 256x256 entries.
+- The GF(2^8) addition (XOR). A table with 256x256 entries.
+
+You may ignore the key schedule.
+```
+
+
+
+```rust,noplaypen
+{{#include ../../halo-hero/examples/regex.rs}}
+```

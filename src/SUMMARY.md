@@ -1,9 +1,11 @@
 # Summary
 
-- [Halo World](./chapter_0/index.md)
-- [Endless Spreadsheets](./chapter_1/index.md)
-- [Many Regions](./multiple-regions/index.md)
+- [Halo World](./halo-world/index.md)
+- [Endless Spreadsheets](./endless-spreadsheets/index.md)
+- [Regions](./multiple-regions/index.md)
 - [Equality Constraints](./equality/index.md)
+- [Fixed Columns](./fixed/index.md)
+- [Chips](./chips/index.md)
 - [Instances](./instances/index.md)
 - [Static Lookups](./static-lookups/index.md)
 - [Dynamic Lookups](./dynamic-lookups/index.md)

@@ -17,12 +17,12 @@ struct TestCircuit<F: Field> {
 #[derive(Clone, Debug)]
 struct TestConfig<F: Field + Clone> {
     _ph: PhantomData<F>,
-    q_mul: Selector,
+    q_enable: Selector,
     advice: Column<Advice>,
 }
 
-// ANCHOR: mul_region
 impl<F: Field> TestCircuit<F> {
+    // ANCHOR: mul
     /// This region occupies 3 rows.
     fn mul(
         config: &<Self as Circuit<F>>::Config,
@@ -33,44 +33,29 @@ impl<F: Field> TestCircuit<F> {
         layouter.assign_region(
             || "mul",
             |mut region| {
-                let v0 = lhs.value().cloned();
-                let v1 = rhs.value().cloned();
-                let v2 =
-                    v0 //
-                        .and_then(|v0| v1.and_then(|v1| Value::known(v0 * v1)));
+                let w0 = lhs.value().cloned();
+                let w1 = rhs.value().cloned();
+                let w2 =
+                    w0 //
+                        .and_then(|w0| w1.and_then(|w1| Value::known(w0 * w1)));
 
-                let w0 = region.assign_advice(
-                    || "assign w0", //
-                    config.advice,
-                    0,
-                    || v0,
-                )?;
+                let w0 = region.assign_advice(|| "assign w0", config.advice, 0, || w0)?;
+                let w1 = region.assign_advice(|| "assign w1", config.advice, 1, || w1)?;
+                let w2 = region.assign_advice(|| "assign w2", config.advice, 2, || w2)?;
+                config.q_enable.enable(&mut region, 0)?;
 
-                let w1 = region.assign_advice(
-                    || "assign w1", //
-                    config.advice,
-                    1,
-                    || v1,
-                )?;
+                // ANCHOR: enforce_equality
+                // enforce equality between the w0/w1 cells and the lhs/rhs cells
+                region.constrain_equal(w0.cell(), lhs.cell())?;
+                region.constrain_equal(w1.cell(), rhs.cell())?;
+                // ANCHOR_END: enforce_equality
 
-                let w2 = region.assign_advice(
-                    || "assign w2", //
-                    config.advice,
-                    2,
-                    || v2,
-                )?;
-
-                // turn on the gate
-                config.q_mul.enable(&mut region, 0)?;
                 Ok(w2)
             },
         )
     }
-}
-// ANCHOR_END: mul_region
+    // ANCHOR_END: mul
 
-// ANCHOR: wit_region
-impl<F: Field> TestCircuit<F> {
     /// This region occupies 1 row.
     fn unconstrained(
         config: &<Self as Circuit<F>>::Config,
@@ -80,17 +65,13 @@ impl<F: Field> TestCircuit<F> {
         layouter.assign_region(
             || "free variable",
             |mut region| {
-                region.assign_advice(
-                    || "assign w0", //
-                    config.advice,
-                    0,
-                    || value,
-                )
+                let w0 = value;
+                let w0 = region.assign_advice(|| "assign w0", config.advice, 0, || w0)?;
+                Ok(w0)
             },
         )
     }
 }
-// ANCHOR_END: wit_region
 
 impl<F: Field> Circuit<F> for TestCircuit<F> {
     type Config = TestConfig<F>;
@@ -103,12 +84,23 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         }
     }
 
-    // ANCHOR: configure
+    // ANCHOR: enable_equality
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
+        // let q_enable = meta.fixed_column();
         let q_enable = meta.complex_selector();
         let advice = meta.advice_column();
 
+        // enable equality constraints
+        meta.enable_equality(advice);
+        // ANCHOR_END: enable_equality
+
+        // ANCHOR: new_gate
         // define a new gate:
+        //
+        // Advice
+        // |      w0 |
+        // |      w1 |
+        // | w0 * w1 |
         meta.create_gate("vertical-mul", |meta| {
             let w0 = meta.query_advice(advice, Rotation(0));
             let w1 = meta.query_advice(advice, Rotation(1));
@@ -116,51 +108,29 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
             let q_enable = meta.query_selector(q_enable);
             vec![q_enable * (w0 * w1 - w3)]
         });
+        // ANCHOR: new_gate
 
         TestConfig {
             _ph: PhantomData,
-            q_mul: q_enable,
+            q_enable,
             advice,
         }
     }
-    // ANCHOR_END: configure
 
-    // ANCHOR: synthesize
     fn synthesize(
         &self,
         config: Self::Config, //
         mut layouter: impl Layouter<F>,
     ) -> Result<(), Error> {
-        // create a new free variable
-        let a = TestCircuit::<F>::unconstrained(
-            &config, //
-            &mut layouter,
-            self.secret.clone(),
-        )?;
+        let a = TestCircuit::<F>::unconstrained(&config, &mut layouter, self.secret.clone())?;
 
         // do a few multiplications
-        let a2 = TestCircuit::<F>::mul(
-            &config, //
-            &mut layouter,
-            a.clone(),
-            a.clone(),
-        )?;
-        let a3 = TestCircuit::<F>::mul(
-            &config, //
-            &mut layouter,
-            a2.clone(),
-            a.clone(),
-        )?;
-        let _a5 = TestCircuit::<F>::mul(
-            &config, //
-            &mut layouter,
-            a3.clone(),
-            a2.clone(),
-        )?;
+        let a2 = TestCircuit::<F>::mul(&config, &mut layouter, a.clone(), a.clone())?;
+        let a3 = TestCircuit::<F>::mul(&config, &mut layouter, a2.clone(), a.clone())?;
+        let _a5 = TestCircuit::<F>::mul(&config, &mut layouter, a3.clone(), a2.clone())?;
 
         Ok(())
     }
-    // ANCHOR_END: synthesize
 }
 
 fn main() {

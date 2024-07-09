@@ -28,8 +28,8 @@ And we need to add equality constraints between the cells when we assign regions
 Because manually assigning a value from another cell, only to then assign it to another cell, is cumbersome and error-prone,
 Halo2 provides a handy function which "copies" one cell to another:
 
-
 It's simply syntactic sugar for the above code.
+
 
 
 ## Exercises
