@@ -1,6 +1,11 @@
 name: Build Book and Examples
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  # just to make sure examples are up to date and still working
+  schedule:
+    - cron: "39 13 * * 1"
 
 permissions:
   contents: read
@@ -8,63 +13,63 @@ permissions:
   id-token: write
 
 jobs:
-    # Check all the examples
-    examples:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  # Check all the examples
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - uses: dtolnay/rust-toolchain@stable
-              with:
-                toolchain: nightly
-                override: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          override: true
 
-            - name: install cargo examples
-              run: cargo install cargo-examples
+      - name: install cargo examples
+        run: cargo install cargo-examples
 
-            - name: run every example
-              run: |
-                cd halo-hero
-                cargo examples
-    
-    # Build the book
-    book:
-        runs-on: ubuntu-latest
-        needs: examples
-        steps:
-            - uses: actions/checkout@v4
+      - name: run every example
+        run: |
+          cd halo-hero
+          cargo examples
 
-            - uses: dtolnay/rust-toolchain@stable
-              with:
-                toolchain: stable
-                override: true
+  # Build the book
+  book:
+    runs-on: ubuntu-latest
+    needs: examples
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: install mdbook
-              run: cargo install mdbook
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          override: true
 
-            - name: install mdbook-admonish
-              run: cargo install mdbook-admonish
+      - name: install mdbook
+        run: cargo install mdbook
 
-            - name: build book
-              run: mdbook build
-            
-            - name: Setup Pages
-              id: pages
-              uses: actions/configure-pages@v5
+      - name: install mdbook-admonish
+        run: cargo install mdbook-admonish
 
-            - name: Upload artifact
-              uses: actions/upload-pages-artifact@v3
-              with:
-                path: ./book
+      - name: build book
+        run: mdbook build
 
-    # Deployment job
-    deploy:
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
-        runs-on: ubuntu-latest
-        needs: book
-        steps:
-          - name: Deploy to GitHub Pages
-            id: deployment
-            uses: actions/deploy-pages@v4
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./book
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: book
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
