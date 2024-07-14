@@ -18,12 +18,9 @@ assets_version = "3.0.2"    # do not edit: managed by `mdbook-admonish install`
 [[preprocessor.admonish.custom]]
 directive = "exercise"
 icon = "./rocket.svg"
-color = "#ff0000"
-aliases = ["ex", "exercise"]
-
-[preprocessor.admonish.directive.custom.think]
-icon = "./rocket.svg"
-color = "#ff0000"
+# magenta
+color = "#FFA62B"
+aliases = ["ex"]
 
 [output]
 

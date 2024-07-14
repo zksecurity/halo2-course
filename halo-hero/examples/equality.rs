@@ -56,8 +56,38 @@ impl<F: Field> TestCircuit<F> {
     }
     // ANCHOR_END: mul
 
+    /// This region occupies 3 rows.
+    #[rustfmt::skip]
+    fn mul_sugar(
+        config: &<Self as Circuit<F>>::Config,
+        layouter: &mut impl Layouter<F>,
+        lhs: AssignedCell<F, F>,
+        rhs: AssignedCell<F, F>,
+    ) -> Result<AssignedCell<F, F>, Error> {
+        layouter.assign_region(
+            || "mul",
+            |mut region| {
+                let w0 = lhs.value().cloned();
+                let w1 = rhs.value().cloned();
+                let w2 =
+                    w0 //
+                        .and_then(|w0| w1.and_then(|w1| Value::known(w0 * w1)));
+
+// ANCHOR: copy
+// enforce equality between the w0/w1 cells and the lhs/rhs cells
+let _w0 = lhs.copy_advice(|| "assign w0", &mut region, config.advice, 0)?;
+let _w1 = rhs.copy_advice(|| "assign w1", &mut region, config.advice, 1)?;
+let w2 = region.assign_advice(|| "assign w2", config.advice, 2, || w2)?;
+config.q_enable.enable(&mut region, 0)?;
+// ANCHOR_END: copy
+
+            Ok(w2)
+        },
+    )
+}
+
     /// This region occupies 1 row.
-    fn unconstrained(
+    fn free(
         config: &<Self as Circuit<F>>::Config,
         layouter: &mut impl Layouter<F>,
         value: Value<F>,
@@ -122,7 +152,7 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         config: Self::Config, //
         mut layouter: impl Layouter<F>,
     ) -> Result<(), Error> {
-        let a = TestCircuit::<F>::unconstrained(&config, &mut layouter, self.secret.clone())?;
+        let a = TestCircuit::<F>::free(&config, &mut layouter, self.secret.clone())?;
 
         // do a few multiplications
         let a2 = TestCircuit::<F>::mul(&config, &mut layouter, a.clone(), a.clone())?;

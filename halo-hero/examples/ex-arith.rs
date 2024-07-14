@@ -6,7 +6,16 @@ use std::{
 use halo2_proofs::{
     circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Fixed, Selector},
+    plonk::{
+        Advice,
+        Circuit,
+        Column,
+        ConstraintSystem, //
+        Error,
+        Expression,
+        Fixed,
+        Selector,
+    },
     poly::Rotation,
 };
 
@@ -17,6 +26,7 @@ struct TestCircuit<F: Field> {
     secret: Value<F>,
 }
 
+// ANCHOR: variable
 #[derive(Clone, Debug)]
 struct Variable<F: Field> {
     mul: F,
@@ -29,7 +39,9 @@ impl<F: Field> Variable<F> {
         self.val.value().map(|v| self.mul * v + self.add)
     }
 }
+// ANCHOR_END: variable
 
+// ANCHOR: add-mul-const
 impl<F: Field> Add<F> for Variable<F> {
     type Output = Self;
 
@@ -53,6 +65,7 @@ impl<F: Field> Mul<F> for Variable<F> {
         }
     }
 }
+// ANCHOR_END: add-mul-const
 
 #[derive(Clone, Debug)]
 struct ArithmeticChip<F: Field> {
@@ -244,12 +257,14 @@ impl<F: Field> ArithmeticChip<F> {
         )
     }
 
+    // ANCHOR: bit
     /// Allocate a bit-constrained variable.
     fn bit(
         &self,
         layouter: &mut impl Layouter<F>,
         value: Value<bool>,
     ) -> Result<Variable<F>, Error> {
+        // ANCHOR_END: bit
         layouter.assign_region(
             || "bit",
             |mut region| {

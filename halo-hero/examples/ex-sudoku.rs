@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     marker::PhantomData,
     ops::{Add, Mul, Neg, Sub},
 };
@@ -8,8 +7,17 @@ use halo2_proofs::{
     circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
     plonk::{
-        Advice, Challenge, Circuit, Column, ConstraintSystem, Error, Expression, FirstPhase, Fixed,
-        SecondPhase, Selector,
+        Advice,
+        Challenge,
+        Circuit,
+        Column, //
+        ConstraintSystem,
+        Error,
+        Expression,
+        FirstPhase,
+        Fixed,
+        SecondPhase,
+        Selector,
     },
     poly::Rotation,
 };
@@ -19,7 +27,8 @@ use ff::{Field, PrimeField};
 const DIM: usize = 9;
 const SQR: usize = 3;
 
-const SUDUKO: [[u8; DIM]; DIM] = [
+// Sudoku puzzle to solve
+const SUDOKU: [[u8; DIM]; DIM] = [
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
     [6, 0, 0, 1, 9, 5, 0, 0, 0],
     [0, 9, 8, 0, 0, 0, 0, 6, 0],
@@ -34,7 +43,7 @@ const SUDUKO: [[u8; DIM]; DIM] = [
 struct TestCircuit<F: Field> {
     _ph: PhantomData<F>,
     suduko: [[u8; DIM]; DIM],
-    solutation: Value<[[u8; DIM]; DIM]>,
+    solution: Value<[[u8; DIM]; DIM]>,
 }
 
 #[derive(Clone, Debug)]
@@ -98,16 +107,21 @@ impl<F: Field> Mul<F> for Variable<F> {
     }
 }
 
+// ANCHOR: challenge_chip
 #[derive(Clone, Debug)]
 struct ChallengeChip<F: Field> {
-    q_challenge: Selector,
+    q_enable: Selector,
     challenge: Challenge,
-    w0: Column<Advice>,
+    advice: Column<Advice>,
     _ph: PhantomData<F>,
 }
 
 impl<F: Field> ChallengeChip<F> {
-    fn configure(meta: &mut ConstraintSystem<F>, challenge: Challenge, w0: Column<Advice>) -> Self {
+    fn configure(
+        meta: &mut ConstraintSystem<F>, //
+        challenge: Challenge,
+        w0: Column<Advice>,
+    ) -> Self {
         let q_challenge = meta.selector();
 
         meta.create_gate("eq_challenge", |meta| {
@@ -118,20 +132,23 @@ impl<F: Field> ChallengeChip<F> {
         });
 
         Self {
-            q_challenge,
+            q_enable: q_challenge,
             challenge,
-            w0,
+            advice: w0,
             _ph: PhantomData,
         }
     }
 
-    fn challenge(&self, layouter: &mut impl Layouter<F>) -> Result<Variable<F>, Error> {
+    fn challenge(
+        &self, //
+        layouter: &mut impl Layouter<F>,
+    ) -> Result<Variable<F>, Error> {
         let value = layouter.get_challenge(self.challenge);
         layouter.assign_region(
             || "challenge",
             |mut region| {
-                self.q_challenge.enable(&mut region, 0)?;
-                let val = region.assign_advice(|| "w0", self.w0, 0, || value)?;
+                self.q_enable.enable(&mut region, 0)?;
+                let val = region.assign_advice(|| "w0", self.advice, 0, || value)?;
                 Ok(Variable {
                     mul: F::ONE,
                     add: F::ZERO,
@@ -141,6 +158,7 @@ impl<F: Field> ChallengeChip<F> {
         )
     }
 }
+// ANCHOR_END: challenge_chip
 
 #[derive(Clone, Debug)]
 struct ArithmeticChip<F: Field> {
@@ -459,8 +477,8 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
     fn without_witnesses(&self) -> Self {
         TestCircuit {
             _ph: PhantomData,
-            solutation: Value::unknown(),
-            suduko: SUDUKO,
+            solution: Value::unknown(),
+            suduko: SUDOKU,
         }
     }
 
@@ -519,7 +537,7 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                 let cell = match self.suduko[i][j] {
                     0 => config.phase1_chip.free(
                         &mut layouter,
-                        self.solutation.map(|sol| F::from_u128(sol[i][j] as u128)),
+                        self.solution.map(|sol| F::from_u128(sol[i][j] as u128)),
                     ),
                     fixed => config
                         .phase1_chip
@@ -610,6 +628,7 @@ fn eval_vanish<F: PrimeField>(
 fn main() {
     use halo2_proofs::halo2curves::bn256::Fr;
 
+    // our sudoku solution
     const SOLUTION: [[u8; DIM]; DIM] = [
         [5, 3, 4, 6, 7, 8, 9, 1, 2],
         [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -622,39 +641,12 @@ fn main() {
         [3, 4, 5, 2, 8, 6, 1, 7, 9],
     ];
 
-    // check the solution
-    for row in 0..DIM {
-        for col in 0..DIM {
-            if SUDUKO[row][col] != 0 {
-                assert_eq!(SUDUKO[row][col], SOLUTION[row][col]);
-            }
-        }
-    }
-
-    for row in 0..DIM {
-        let mut elems = HashMap::new();
-        for col in 0..DIM {
-            let elem = SOLUTION[row][col];
-            assert!(!elems.contains_key(&elem));
-            elems.insert(elem, ());
-        }
-    }
-
-    for col in 0..DIM {
-        let mut elems = HashMap::new();
-        for row in 0..DIM {
-            let elem = SOLUTION[row][col];
-            assert!(!elems.contains_key(&elem));
-            elems.insert(elem, ());
-        }
-    }
-
     // run the MockProver
     let circuit = TestCircuit::<Fr> {
         _ph: PhantomData,
-        solutation: Value::known(SOLUTION),
-        suduko: SUDUKO,
+        solution: Value::known(SOLUTION),
+        suduko: SUDOKU,
     };
-    let prover = MockProver::run(14, &circuit, vec![]).unwrap();
+    let prover = MockProver::run(10, &circuit, vec![]).unwrap();
     prover.verify().unwrap();
 }

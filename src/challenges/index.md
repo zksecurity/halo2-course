@@ -2,8 +2,10 @@
 
 ![](./top.webp)
 
+## Exercises
+
 ```admonish exercise
-*Exercise:* Create a circuit which verifies Sudoku solutions.
+Create a circuit which verifies Sudoku solutions.
 ```
 
 ```admonish hint
@@ -26,5 +28,27 @@ You can then check \\(f(X) = g(X) \\) by evaluating the polynomials at a random 
 ```
 
 ```admonish hint
-Use fixed columns and equality constraint to enforce the fixed cells in the Sudoku puzzle.
+Build upon the arithmetic chip introduced in earlier exercises.
+```
+
+```admonish hint
+You might find the a `ChallengeChip` useful.
+```
+
+```rust,noplaypen
+{{#include ../../halo-hero/examples/ex-sudoku.rs:challenge_chip}}
+```
+
+```admonish exercise
+Fill in an invalid solution to the Sudoku puzzle and verify that the circuit rejects it.
+```
+
+
+
+## Solutions
+
+Full solution:
+
+```rust,noplaypen
+{{#include ../../halo-hero/examples/ex-sudoku.rs}}
 ```

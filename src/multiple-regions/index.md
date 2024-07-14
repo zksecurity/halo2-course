@@ -12,14 +12,14 @@ Whether in software engineering or hardware design, this is a common pattern,
 and Halo2 circuit development is no different.
 
 Using (multiple) regions will allow us to create distinct "logical" units that we can compose.
-In fact, what people usually refer to as a "gate" (think addition/multiplication gates)
+In fact, what people usually refer to as a "gate" in regular circuits (think addition/multiplication gates)
 are in fact more analogous to regions with certain gates enabled in Halo2.
 This will enable us to create more complex circuits in a more modular way by building up a library of "gadgets" which we can compose to obtain more and more complex behavior.
 
 ## Another Gate
 
+Okay new gate time...
 
-Okay new gate time.
 Change the `configure` function into:
 
 ```rust,no_run,noplaypen
@@ -28,9 +28,9 @@ Change the `configure` function into:
 
 ```admonish question title="Stop-and-Think"
 
-What does this gate do?
+What does the "vertical-mul" gate do?
 
-Hint: 
+Hint:
 
 - Rotation(0) = Rotation::cur()
 - Rotation(1) = Rotation::next()
@@ -43,7 +43,15 @@ To ease the creation of the multiplication gate, we will add a function that all
 {{#include ../../halo-hero/examples/regions.rs:mul_region}}
 ```
 
-This function takes two assigned cells and returns a cell that is assigned the product of the two inputs. 
+This function:
+
+- Takes two assigned cells.
+- Assigns the `offset = 0` cell to the value of the `lhs` cell.
+- Assigns the `offset = 1` cell to the value of the `rhs` cell.
+- Assigns the `offset = 2` cell to the product of the two inputs.
+- Turns on the `vertical-mul` gate.
+
+Finally, it returns the `offset = 2` cell: the product of the two inputs.
 
 ```admonish warning
 This code is not safe (yet)! Can you see why?
@@ -75,14 +83,22 @@ As hinted at in the warning, this code is <u>not safe</u>!
 The problem is that equality is not enforced between:
 
 - The assigned cells
-`lhs`/`rhs` 
+`lhs`/`rhs`
 - The assigned cells `w0`/`w1`
 
-To fix this, we are going to need equality constraints, which we will explore in the next section.
-
+A malicious prover could set `w0` and `w1` to arbitrary values
+not related to the inputs of `lhs` and `rhs`.
+To fix this, we are going to need *equality constraints*, which we will explore in the next section.
 
 ## Exercises
 
 ```admonish exercise
 **Exercise:** Implement an addition gate in the same style as the multiplication gate.
+```
+
+```admonish exercise
+**Exercise:** Implement the attack described above:
+assign `w0` and `w1` to arbitrary values not related to the inputs of `lhs` and `rhs`.
+
+Verify that the circuit accepts this malicious assignment.
 ```
