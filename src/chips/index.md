@@ -6,18 +6,21 @@
 
 So far, we have created multiple regions.
 We have created regions for addition and multiplication.
-We have been stringing them together.
+We have been stringing them together having a grand old time.
 But things are getting a bit unwieldy:
 every method has been implemented on the `TestCircuit` struct.
 
-It also hinders reusability: nobody else can use the nice gadgets that we have created,
+Like writing Java with only a single class...
+
+Throwing everything into the same struct
+also hinders reusability: nobody else can use the nice gadgets that we have created,
 without buying the whole `TestCircuit` struct.
 We need to find a way to make our gadgets more modular.
 The pattern we introduce here is that of ["chips"](https://zcash.github.io/halo2/concepts/chips.html).
 
 There is nothing special about a chip, it is just a way to structure our circuits.
-Like a class in object-oriented programming, a chip is a way to group related functionality together:
-you can write Java by having only a single class, but it becomes unwieldy.
+Like a class in object-oriented programming, a chip is a way to group related functionality together.
+Like a library.
 
 I think we are also ready to graduate to multiple advice columns :)
 
