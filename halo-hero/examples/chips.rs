@@ -1,8 +1,7 @@
 use std::marker::PhantomData;
 
 use halo2_proofs::{
-    arithmetic,
-    circuit::{AssignedCell, Chip, Layouter, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
     plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Selector},
     poly::Rotation,
