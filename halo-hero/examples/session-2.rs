@@ -200,7 +200,7 @@ impl<F: PrimeField> ArithmeticChip<F> {
             let w1 = meta.query_advice(advice, Rotation::next()); // next row
             let w2 = meta.query_advice(advice, Rotation(2)); // next next row
 
-            let q_add = meta.query_selector(q_mul);
+            let q_add = meta.query_selector(q_add);
 
             // w2 = w1 * w0 <-- sat.
             vec![q_add * (w1 + w0 - w2)]
@@ -268,7 +268,7 @@ fn main() {
     let circuit = TestCircuit::<Fr> {
         _ph: PhantomData,
         a: Value::known(Fr::from_u128(2)),
-        b: Value::known(Fr::from_u128(5)),
+        b: Value::known(Fr::from_u128(4)),
     };
     let prover = MockProver::run(8, &circuit, vec![]).unwrap();
     prover.verify().unwrap();
