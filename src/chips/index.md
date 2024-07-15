@@ -57,10 +57,9 @@ A natrual question at this point arises:
 Namely, why not define the `Advice` columns inside `ArithmeticChip::configure`?
 
 The answer is that we could do so, but that it is often useful for different chips to share the same columns.
-This is because introducing new columns relatively expensive:
+This is because introducing new columns is relatively expensive:
 it increases the size of the proof and the verification time.
-Of course `Selector` columns
-which are usually chip-specific:
+Of course `Selector` columns are usually chip-specific:
 sharing them would cause different chips to interfere with each other.
 ```
 
@@ -119,8 +118,8 @@ Where:
 
 - `cm` is the multiplication *constant* (`Column<Fixed>`)
 - `c0`, `c1`, `c2` are linear *constants* (`Column<Fixed>`)
-- `cc` is a *constant* (`Column<Fixed>`)
-- `w0`, `w1`, `w2` are the advice (`Column<Advice>`)
+- `cc` is a additive *constant* (`Column<Fixed>`)
+- `w0`, `w1`, `w2` are the advice cells (`Column<Advice>`)
 
 ```admonish exercise
 Update the `ArithmeticChip` to use the new gate for both addition/multiplication.
