@@ -222,6 +222,7 @@ version = "0.1.0"
 dependencies = [
  "ff",
  "halo2_proofs",
+ "rand",
 ]
 
 [[package]]
