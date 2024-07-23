@@ -90,8 +90,18 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         let tbl_ch = meta.lookup_table_column();
 
         // ANCHOR_END: columns
+
+        // ANCHOR: fix
+        meta.create_gate("fix-st", |meta| {
+            let st = meta.query_advice(st, Rotation::cur());
+            let fix_st = meta.query_fixed(fix_st, Rotation::cur());
+            let en = meta.query_selector(q_match);
+            vec![en * (st - fix_st)]
+        });
+        // ANCHOR_END: fix
+
         // ANCHOR: lookup
-        meta.lookup("step", |meta| {
+        meta.lookup("transition-st", |meta| {
             let st_cur = meta.query_advice(st, Rotation::cur());
             let st_nxt = meta.query_advice(st, Rotation::next());
             let ch = meta.query_advice(ch, Rotation::cur());
@@ -103,13 +113,6 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
             ]
         });
         // ANCHOR_END: lookup
-
-        meta.create_gate("fix state", |meta| {
-            let st = meta.query_advice(st, Rotation::cur());
-            let fix_st = meta.query_fixed(fix_st, Rotation::cur());
-            let en = meta.query_selector(q_match);
-            vec![en * (st - fix_st)]
-        });
 
         TestConfig {
             _ph: PhantomData,
@@ -124,6 +127,7 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         }
     }
 
+    // ANCHOR: assign_table
     fn synthesize(
         &self,
         config: Self::Config, //
@@ -133,8 +137,7 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         layouter.assign_table(
             || "table",
             |mut table| {
-                // a table of field elements and their "pop counts"
-                // (a not very field friendly operation)
+                // convert the numbers to field elements
                 let mut transitions: Vec<(F, F, F)> = vec![
                     // (0, 0, 0) is in the table to account for q_regex = 0
                     (F::ZERO, F::ZERO, F::ZERO),
@@ -154,13 +157,13 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                     .enumerate()
                 {
                     table.assign_cell(
-                        || format!("key"),
+                        || format!("st_cur"),
                         config.tbl_st_cur,
                         offset,
                         || Value::known(st_cur),
                     )?;
                     table.assign_cell(
-                        || format!("value"),
+                        || format!("st_nxt"),
                         config.tbl_st_nxt,
                         offset,
                         || Value::known(st_nxt),
@@ -175,10 +178,9 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                 Ok(())
             },
         )?;
+        // ANCHOR_END: assign_table
 
-        // create a region which can check the regex expression
-        // note: you could have multiple regions to check
-        // the same regex at basically no additional cost
+        // ANCHOR: region_start
         layouter.assign_region(
             || "regex",
             |mut region| {
@@ -190,7 +192,9 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                     || Value::known(F::from(ST_START as u64)),
                 )?;
                 config.q_match.enable(&mut region, 0)?;
+                // ANCHOR_END: region_start
 
+                // ANCHOR: region_steps
                 // assign each step
                 for i in 0..MAX_STR_LEN {
                     // enable the regex automaton
@@ -228,7 +232,9 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                         },
                     )?;
                 }
+                // ANCHOR_END: region_steps
 
+                // ANCHOR: region_end
                 // at offset MAX_STR_LEN, the state is ST_START
                 region.assign_advice(
                     || "st",
@@ -243,10 +249,10 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
                     || Value::known(F::from(ST_DONE as u64)),
                 )?;
                 config.q_match.enable(&mut region, MAX_STR_LEN)?;
-
                 Ok(())
             },
         )?;
+        // ANCHOR_END: region_end
 
         Ok(())
     }
