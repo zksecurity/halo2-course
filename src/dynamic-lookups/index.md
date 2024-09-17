@@ -291,6 +291,8 @@ At this point we have a table, garunteed to contain correct invocations of the P
 Now we need to create a chip that can look up the entries (input/output pairs) in the table dynamically
 so we can "use the hash function" in a circuit.
 
+### Configuration
+
 Towards this end, we define a chip responsible for looking up the Poseidon table:
 
 ```rust,ignore
@@ -336,11 +338,140 @@ $$
 
 This *dynamic* value will be used to turn the lookup "on" and "off".
 
+In order for us to access the Poseidon table, we need to gain access to it's columns,
+to do this we follow the approach of PSE and create a little helper which reads the column expressions.
+This is done by `let table = tbl.table_expr(cells);` and
+inside `table_expr` we simply query the columns at the current offset and return the resulting expressions:
+
 ```rust,ignore
 {{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_table_expr}}
 ```
 
+With that out of the way, we can now define the actual lookup:
+when `do_lookup = 1` the lookup requires that the row `(1, inp1, inp2, out)` is in the columns `(flag_final, inp1, inp2, col1)` of the Poseidon table.
+In other words: the inputs/output pair is from a row which has been marked by `flag_final = 1` i.e. for which the Poseidon hash function has been completely evaluated.
+
+```admonish question
+What do you think would happen if we did not include `flag_final` in the lookup?
+```
+
+```admonish answer
+If we did not include `flag_final` in the lookup, the prover would be able to lookup any row in the table,
+not just the ones corresponding to the *full* evaluation of the Poseidon hash function.
+For instance, he could lookup the first row of a Poseidon applicaion:
+| flag_start | flag_round | flag_final | inp1 | inp2 | rndc1 | rndc2 | rndc3 | col1 | col2 | col3 |
+|------------|------------|------------|------|------|-------|-------|-------|------|------|------|
+| 1          | 1          | 0          | x    | y    | a1    | b1    | c1    | x    | y    | 0    |
+
+This row does not represent a complete hash computation, but only the initial state.
+The prover could then claim that this initial state is the result of the hash function,
+which would yield trivial collisions: \\( \mathsf{Hash}(x, y) = x = \mathsf{Hash}(x, y') \\) for any \\( y' \\).
+
+The flag `flag_final` is used to mark results "read for consumption" avoding this issue.
+```
+
+### Synthesizing
+
+What remains is to use our new Poseidon chip in a circuit.
+To do this we define a function which creates a new region and assigns the output appropriately:
+
+```rust,ignore
+{{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_chip_hash}}
+```
+
+The `hash` function stores the inputs into `inputs`,
+computes the Poseidon hash function out-of-circuit,
+and assigns the inputs/output pairs of the Poseidon chip.
+Finally, we turn on the selector `sel` for the Poseidon chip (lookup).
+This constrains the inputs/output pair to be in the Poseidon table,
+which will only be the case if the Poseidon hash function was correctly evaluated.out-of-circuit.
+
+After the last `hash` invocation, we need to finalize the Poseidon chip:
+
+```rust,ignore
+{{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_chip_finalize}}
+```
+
+Which simply pads the `inputs` vector with dummy values to hash, before populating the Poseidon table.
+The overall use of the Poseidon chip is as follows:
+
+```rust,ignore
+{{#include ../../halo-hero/examples/conditional-poseidon.rs:test_circuit}}
+```
+
+Which should be familiar by now:
+
+- We create three free variables `in1`, `in2`, and `on`.
+- We hash the inputs using the Poseidon chip.
+- We finalize the Poseidon chip.
+
+Of course in a real application, the variables `in1`, `in2`, and `on` would likely be constrained by other parts of the circuit.
+
 ## Exercises
+
+```admonish exercise
+**Exercise:**
+Implement a Merkle tree chip using lookups into the Poseidon table.
+```
+
+```admonish exercise
+
+When opening leaves in a Merkle tree,
+you will often end up computing the same hash multiple times.
+For instance, consider the tree below:
+
+<svg width="600" height="300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tree structure -->
+  <line x1="300" y1="75" x2="150" y2="150" stroke="black"/>
+  <line x1="300" y1="75" x2="450" y2="150" stroke="black"/>
+  <line x1="150" y1="150" x2="75" y2="225" stroke="black"/>
+  <line x1="150" y1="150" x2="225" y2="225" stroke="black"/>
+  <line x1="450" y1="150" x2="375" y2="225" stroke="black"/>
+  <line x1="450" y1="150" x2="525" y2="225" stroke="black"/>
+
+  <!-- Nodes -->
+  <circle cx="300" cy="75" r="30" fill="blue"/>
+  <text x="300" y="80" text-anchor="middle" fill="white">Root</text>
+  <circle cx="150" cy="150" r="30" fill="green"/>
+  <text x="150" y="155" text-anchor="middle" fill="white">A</text>
+  <circle cx="450" cy="150" r="30" fill="green"/>
+  <text x="450" y="155" text-anchor="middle" fill="white">B</text>
+  <circle cx="75" cy="225" r="30" fill="orange"/>
+  <text x="75" y="230" text-anchor="middle" fill="white">C</text>
+  <circle cx="225" cy="225" r="30" fill="orange"/>
+  <text x="225" y="230" text-anchor="middle" fill="white">D</text>
+  <circle cx="375" cy="225" r="30" fill="orange"/>
+  <text x="375" y="230" text-anchor="middle" fill="white">E</text>
+  <circle cx="525" cy="225" r="30" fill="orange"/>
+  <text x="525" y="230" text-anchor="middle" fill="white">F</text>
+</svg>
+
+And suppose we want to open leaf `D` and `C`.
+
+Verifying the inclusion proof of `C` requires computing:
+
+- \\( \mathsf{Hash}(C, D) \\)
+- \\( \mathsf{Hash}(A, B) \\)
+
+And opening `D` requires computing the same hashes:
+
+- \\( \mathsf{Hash}(C, D) \\)
+- \\( \mathsf{Hash}(A, B) \\)
+
+Even in the case where `C` and `F` are opened, the hash \\( \mathsf{Hash}(A, B) \\) is still computed twice...
+
+Would it not be nice if we could only compute each hash once inside the circuit?
+
+Well that is actually pretty easy given what we have learned so far.
+
+**Exercise:**
+Optimize your Merkle tree chip to only compute each hash once,
+deduplicating identical hashes.
+```
+
+```admonish hint
+If you find this hard to do, you are likely overthinking it :)
+```
 
 ```admonish exercise
 **Exercise:**

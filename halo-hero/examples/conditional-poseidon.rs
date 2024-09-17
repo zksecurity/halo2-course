@@ -479,6 +479,7 @@ impl<F: Field> PoseidonChip<F> {
     }
     // ANCHOR_END: poseidon_chip_configure
 
+    // ANCHOR: poseidon_chip_hash
     fn hash(
         &self,
         layouter: &mut impl Layouter<F>,
@@ -513,7 +514,9 @@ impl<F: Field> PoseidonChip<F> {
             },
         )
     }
+    // ANCHOR_END: poseidon_chip_hash
 
+    // ANCHOR: poseidon_chip_finalize
     fn finalize(self, layouter: &mut impl Layouter<F>) -> Result<(), plonk::Error> {
         let mut inputs = self.inputs.borrow().clone();
         while inputs.len() < MAX_OPS_POSEIDON {
@@ -521,8 +524,10 @@ impl<F: Field> PoseidonChip<F> {
         }
         self.tbl.populate(layouter, inputs)
     }
+    // ANCHOR_END: poseidon_chip_finalize
 }
 
+// ANCHOR: test_circuit
 impl<F: Field> Circuit<F> for TestCircuit<F> {
     type Config = TestConfig<F>;
     type FloorPlanner = SimpleFloorPlanner;
@@ -545,22 +550,42 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         config: Self::Config,
         mut layouter: impl Layouter<F>,
     ) -> Result<(), plonk::Error> {
-        println!("synthesizing");
         let hashes = vec![(F::ZERO, F::ZERO); MAX_OPS_POSEIDON];
 
         let in1 = layouter.assign_region(
             || "free1",
-            |mut region| region.assign_advice(|| "free", config.free, 0, || Value::known(F::ONE)),
+            |mut region| {
+                region.assign_advice(
+                    || "free", //
+                    config.free,
+                    0,
+                    || Value::known(F::ONE),
+                )
+            },
         )?;
 
         let in2 = layouter.assign_region(
             || "free2",
-            |mut region| region.assign_advice(|| "free", config.free, 0, || Value::known(F::ONE)),
+            |mut region| {
+                region.assign_advice(
+                    || "free", //
+                    config.free,
+                    0,
+                    || Value::known(F::ONE),
+                )
+            },
         )?;
 
         let on = layouter.assign_region(
             || "free3",
-            |mut region| region.assign_advice(|| "free", config.free, 0, || Value::known(F::ONE)),
+            |mut region| {
+                region.assign_advice(
+                    || "free", //
+                    config.free,
+                    0,
+                    || Value::known(F::ONE),
+                )
+            },
         )?;
 
         // populate poseidon
@@ -570,6 +595,7 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         Ok(())
     }
 }
+// ANCHOR_END: test_circuit
 
 fn main() {
     use halo2_proofs::halo2curves::bn256::Fr;
