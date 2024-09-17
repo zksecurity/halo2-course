@@ -23,11 +23,13 @@ struct TestConfig<F: Field + Clone> {
     free: Column<Advice>,
 }
 
+// ANCHOR: poseidon_params
 const ROUNDS: usize = 8;
 const WIDTH: usize = 3;
 
 const CAPACITY: usize = 1;
 const RATE: usize = WIDTH - CAPACITY;
+// ANCHOR_END: poseidon_params
 
 const MAX_OPS_POSEIDON: usize = 10;
 
@@ -35,6 +37,7 @@ const MAX_OPS_POSEIDON: usize = 10;
 // (otherwise it is not a permutation)
 const POWER: u64 = 5;
 
+// ANCHOR: poseidon_table
 // a simplified version of Poseidon permutation
 #[derive(Debug, Clone)]
 struct PoseidonTable<F: Field + Clone> {
@@ -49,6 +52,7 @@ struct PoseidonTable<F: Field + Clone> {
     cols: [Column<Advice>; WIDTH],
     _ph: PhantomData<F>,
 }
+// ANCHOR_END: poseidon_table
 
 // Cauchy matrix
 fn poseidon_matrix<F: Field>() -> [[F; WIDTH]; WIDTH] {
@@ -121,7 +125,7 @@ struct PoseidonExprs<F: Field> {
 }
 
 impl<F: Field> PoseidonTable<F> {
-    //
+    // ANCHOR: poseidon_table_expr
     fn table_expr(&self, meta: &mut VirtualCells<F>) -> PoseidonExprs<F> {
         PoseidonExprs {
             flag: meta.query_any(self.flag_final, Rotation::cur()),
@@ -130,6 +134,7 @@ impl<F: Field> PoseidonTable<F> {
             out: meta.query_any(self.cols[0], Rotation::cur()),
         }
     }
+    // ANCHOR_END: poseidon_table_expr
 
     fn hash(&self, in1: F, in2: F) -> F {
         let mut state = [in1, in2, F::ZERO];
@@ -162,6 +167,7 @@ impl<F: Field> PoseidonTable<F> {
         let flag_round = meta.fixed_column();
         let flag_final = meta.fixed_column();
 
+        // ANCHOR: poseidon_start
         meta.create_gate("start", |meta| {
             let flag_start = meta.query_fixed(flag_start, Rotation::cur());
             let inp1 = meta.query_advice(inp1, Rotation::cur());
@@ -175,7 +181,9 @@ impl<F: Field> PoseidonTable<F> {
                 flag_start.clone() * col3,          // col3 = 0
             ]
         });
+        // ANCHOR_END: poseidon_start
 
+        // ANCHOR: poseidon_round1
         meta.create_gate("round", |meta| {
             let flag_round = meta.query_fixed(flag_round, Rotation::cur());
 
@@ -206,15 +214,18 @@ impl<F: Field> PoseidonTable<F> {
                 meta.query_advice(inp1, Rotation::next()),
                 meta.query_advice(inp2, Rotation::next()),
             ];
+            // ANCHOR_END: poseidon_round1
 
+            // ANCHOR: poseidon_round_arc
             // add round constants
-
             let cols_arc = [
                 cols_cur[0].clone() + rndc[0].clone(), //
                 cols_cur[1].clone() + rndc[1].clone(), //
                 cols_cur[2].clone() + rndc[2].clone(), //
             ];
+            // ANCHOR_END: poseidon_round_arc
 
+            // ANCHOR: poseidon_round_sbox
             // apply sbox: this is pretty inefficient, the degree of the gate is high
             assert_eq!(POWER, 5);
 
@@ -227,9 +238,10 @@ impl<F: Field> PoseidonTable<F> {
                 sbox(cols_arc[1].clone()),
                 sbox(cols_arc[2].clone()),
             ];
+            // ANCHOR_END: poseidon_round_sbox
 
+            // ANCHOR: poseidon_round_matrix
             // apply matrix
-
             let cols_mat: [Expression<F>; WIDTH] = [
                 Expression::Constant(F::ZERO)
                     + cols_sbox[0].clone() * matrix[0][0]
@@ -244,9 +256,12 @@ impl<F: Field> PoseidonTable<F> {
                     + cols_sbox[1].clone() * matrix[2][1]
                     + cols_sbox[2].clone() * matrix[2][2],
             ];
+            // ANCHOR_END: poseidon_round_matrix
 
-            // multiply by matrix
+            // ANCHOR: poseidon_round_constraints
+            // enforce that the next state is the round applied to the current state.
             vec![
+                // round application
                 flag_round.clone() * (cols_mat[0].clone() - cols_nxt[0].clone()), // inp1 = col1
                 flag_round.clone() * (cols_mat[1].clone() - cols_nxt[1].clone()), // inp2 = col2
                 flag_round.clone() * (cols_mat[2].clone() - cols_nxt[2].clone()), // 0 = col3
@@ -255,6 +270,7 @@ impl<F: Field> PoseidonTable<F> {
                 flag_round.clone() * (inp_cur[1].clone() - inp_nxt[1].clone()), // inp2 = inp2
             ]
         });
+        // ANCHOR_END: poseidon_round_constraints
 
         Self {
             matrix,
@@ -270,6 +286,7 @@ impl<F: Field> PoseidonTable<F> {
         }
     }
 
+    // ANCHOR: poseidon_assign_row
     fn assign_row(
         &self,
         idx: usize,
@@ -309,14 +326,16 @@ impl<F: Field> PoseidonTable<F> {
         reg.assign_advice(|| "inp2", self.inp2, idx, || Value::known(inp[1]))?;
         Ok(())
     }
+    // ANCHOR_END: poseidon_assign_row
 
+    // ANCHOR: poseidon_populate
     fn populate(
         &self,
         layouter: &mut impl Layouter<F>,
-        hashes: Vec<(F, F)>,
+        inputs: Vec<(F, F)>,
     ) -> Result<(), plonk::Error> {
         // ensure padded
-        assert_eq!(hashes.len(), MAX_OPS_POSEIDON);
+        assert_eq!(inputs.len(), MAX_OPS_POSEIDON);
 
         // assign poseidon table
         layouter.assign_region(
@@ -346,7 +365,7 @@ impl<F: Field> PoseidonTable<F> {
                     for r in 0..ROUNDS {
                         // load input
                         if r == 0 {
-                            inp = [hashes[op].0, hashes[op].1];
+                            inp = [inputs[op].0, inputs[op].1];
                             st[0] = inp[0];
                             st[1] = inp[1];
                             st[2] = F::ZERO;
@@ -389,8 +408,10 @@ impl<F: Field> PoseidonTable<F> {
 
         Ok(())
     }
+    // ANCHOR_END: poseidon_populate
 }
 
+// ANCHOR: poseidon_chip
 #[derive(Clone, Debug)]
 pub struct PoseidonChip<F: Field> {
     inputs: RefCell<Vec<(F, F)>>,
@@ -401,7 +422,9 @@ pub struct PoseidonChip<F: Field> {
     out: Column<Advice>,
     on: Column<Advice>,
 }
+// ANCHOR_END: poseidon_chip
 
+// ANCHOR: poseidon_chip_configure
 impl<F: Field> PoseidonChip<F> {
     fn configure(meta: &mut ConstraintSystem<F>) -> Self {
         let sel = meta.complex_selector();
@@ -416,9 +439,15 @@ impl<F: Field> PoseidonChip<F> {
         meta.enable_equality(out);
         meta.enable_equality(on);
 
-        meta.lookup_any("poseidon_lookup", |cells| {
-            let table = tbl.table_expr(cells);
+        meta.create_gate("bit", |meta| {
+            let on = meta.query_advice(on, Rotation::cur());
+            let sel = meta.query_selector(sel);
+            vec![
+                sel * on.clone() * (on.clone() - Expression::Constant(F::ONE)), //
+            ]
+        });
 
+        meta.lookup_any("poseidon_lookup", |cells| {
             let on = cells.query_advice(on, Rotation::cur());
             let sel = cells.query_selector(sel);
             let in1 = cells.query_advice(in1, Rotation::cur());
@@ -427,20 +456,14 @@ impl<F: Field> PoseidonChip<F> {
 
             let do_lookup = on * sel;
 
-            //
+            let table = tbl.table_expr(cells);
+
+            // (1, in1, in2, out) in PoseidonTable
             vec![
                 (do_lookup.clone() * Expression::Constant(F::ONE), table.flag),
                 (do_lookup.clone() * in1.clone(), table.inp1),
                 (do_lookup.clone() * in2.clone(), table.inp2),
                 (do_lookup.clone() * out.clone(), table.out),
-            ]
-        });
-
-        meta.create_gate("bit", |meta| {
-            let on = meta.query_advice(on, Rotation::cur());
-            let sel = meta.query_selector(sel);
-            vec![
-                sel * on.clone() * (on.clone() - Expression::Constant(F::ONE)), //
             ]
         });
 
@@ -454,6 +477,7 @@ impl<F: Field> PoseidonChip<F> {
             inputs: RefCell::new(Vec::new()),
         }
     }
+    // ANCHOR_END: poseidon_chip_configure
 
     fn hash(
         &self,
@@ -480,6 +504,9 @@ impl<F: Field> PoseidonChip<F> {
                 let hsh = in1
                     .value()
                     .and_then(|in1| in2.value().map(|in2| self.tbl.hash(*in1, *in2)));
+
+                // if on = 0, hsh = 0
+                let hsh = on.value().and_then(|on| hsh.map(|hsh| hsh * on));
 
                 let out = reg.assign_advice(|| "out", self.out, 0, || hsh)?;
                 Ok(out)
@@ -538,6 +565,7 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
 
         // populate poseidon
         let out = config.poseidon.hash(&mut layouter, on, in1, in2)?;
+        println!("hash done: {:?}", out);
         config.poseidon.finalize(&mut layouter)?;
         Ok(())
     }

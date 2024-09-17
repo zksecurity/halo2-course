@@ -223,6 +223,7 @@ dependencies = [
  "ff",
  "halo2_proofs",
  "rand",
+ "rand_chacha",
 ]
 
 [[package]]

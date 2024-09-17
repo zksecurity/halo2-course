@@ -2,6 +2,22 @@
 
 ![](./top.webp)
 
+```admonish cite
+“And what is the use of a book,” thought Alice, “without pictures or conversations?”
+
+-- Alice in Wonderland, Lewis Carroll
+```
+
+Because of how PlonK works it is trivial to add multiple "rounds of interaction" to a proof
+in which the prover commits to some values, the verifier sends a challenge and the prover commits to some more values.
+This back and forth can be repeated essentially for as many rounds as you like,
+Halo2 (as implemented) supports three such "phases" of interaction.
+
+## Challenges in Halo2
+
+In Halo2, the "challenges" are accessed similarly to columns:
+
+
 ## Exercises
 
 ```admonish exercise
