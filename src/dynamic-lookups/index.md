@@ -478,8 +478,8 @@ If you find this hard to do, you are likely overthinking it :)
 Implement an "conditional AES" circuit, where the AES encryption is only performed if a condition is true:
 
 $$
-\mathsf{ConditionalAES}(x, k, b) = \begin{cases}
-\mathsf{AES128}(x, k) & \text{if } b = 1 \\\\
+\mathsf{ConditionalAES}(b, k, x) = \begin{cases}
+\mathsf{AES128}(k, x) & \text{if } b = 1 \\\\
 x & \text{if } b = 0
 \end{cases}
 $$
