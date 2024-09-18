@@ -10,6 +10,7 @@
 - [Static Lookups](./static-lookups/index.md)
 - [Dynamic Lookups](./dynamic-lookups/index.md)
 - [Challenges](./challenges/index.md)
+- [Bonus: Circuit Architecture](./bonus-circuit-architecture/index.md)
 - [Memory Checking](./memory-checking/index.md)
 - [Recursion (Snark-Verifier)](./recursion/index.md)
 - [Gadgets](./gadgets/index.md)
