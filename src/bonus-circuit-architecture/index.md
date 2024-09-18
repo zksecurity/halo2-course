@@ -1,5 +1,16 @@
 # Bonus: Circuit Architecture
 
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="400" cy="150" r="80" fill="#FFD700" />
+  <rect x="100" y="200" width="300" height="150" fill="#4169E1" transform="rotate(-15)" />
+  <polygon points="600,100 700,150 600,200 500,150" fill="#FF4500" />
+  <line x1="200" y1="50" x2="600" y2="350" stroke="#000000" stroke-width="5" />
+  <ellipse cx="640" cy="280" rx="120" ry="30" fill="#32CD32" transform="rotate(30)" />
+  <path d="M300 300 Q 400 350 500 300" stroke="#FF1493" stroke-width="8" fill="none" />
+  <circle cx="200" cy="100" r="20" fill="#9932CC" />
+  <circle cx="600" cy="300" r="25" fill="#FF6347" />
+</svg>
+
 We have seen a number of different techniques.
 
 These exercises will help you explore when to use which technique.
