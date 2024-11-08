@@ -1,0 +1,14 @@
+digraph NFA {
+    bgcolor="transparent";
+
+    rankdir="LR";
+	fontname="Helvetica,Arial,sans-serif"
+	node [fontname="Helvetica,Arial,sans-serif"]
+	edge [fontname="Helvetica,Arial,sans-serif"]
+
+	ST_A -> ST_A [label="a"]
+	ST_A -> ST_B [label="a"]
+	ST_B -> ST_B [label="b"]
+	ST_B -> ST_C [label="b"]
+	ST_C -> ST_DONE [label="c"]
+}

@@ -1,8 +1,7 @@
 use std::marker::PhantomData;
 
 use halo2_proofs::{
-    arithmetic,
-    circuit::{AssignedCell, Chip, Layouter, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
     plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Selector},
     poly::Rotation,
@@ -27,6 +26,7 @@ struct ArithmeticChip<F: Field> {
 }
 // ANCHOR_END: arithmetic_chip
 
+// ANCHOR: chip-configure
 impl<F: Field> ArithmeticChip<F> {
     fn configure(
         meta: &mut ConstraintSystem<F>,
@@ -39,18 +39,18 @@ impl<F: Field> ArithmeticChip<F> {
 
         // define an addition gate:
         meta.create_gate("add", |meta| {
-            let w0 = meta.query_advice(w0, Rotation(0));
-            let w1 = meta.query_advice(w1, Rotation(0));
-            let w2 = meta.query_advice(w2, Rotation(0));
+            let w0 = meta.query_advice(w0, Rotation::cur());
+            let w1 = meta.query_advice(w1, Rotation::cur());
+            let w2 = meta.query_advice(w2, Rotation::cur());
             let q_add = meta.query_selector(q_add);
             vec![q_add * (w0 + w1 - w2)]
         });
 
         // define a multiplication gate:
         meta.create_gate("mul", |meta| {
-            let w0 = meta.query_advice(w0, Rotation(0));
-            let w1 = meta.query_advice(w1, Rotation(0));
-            let w2 = meta.query_advice(w2, Rotation(0));
+            let w0 = meta.query_advice(w0, Rotation::cur());
+            let w1 = meta.query_advice(w1, Rotation::cur());
+            let w2 = meta.query_advice(w2, Rotation::cur());
             let q_mul = meta.query_selector(q_mul);
             vec![q_mul * (w0 * w1 - w2)]
         });
@@ -64,7 +64,9 @@ impl<F: Field> ArithmeticChip<F> {
             w2,
         }
     }
+    // ANCHOR_END: chip-configure
 
+    // ANCHOR: chip-mul
     fn mul(
         &self,
         layouter: &mut impl Layouter<F>,
@@ -74,15 +76,20 @@ impl<F: Field> ArithmeticChip<F> {
         layouter.assign_region(
             || "mul",
             |mut region| {
+                // enable the multiplication gate
+                self.q_mul.enable(&mut region, 0)?;
+
+                // compute cell values
                 let w0 = lhs.value().cloned();
                 let w1 = rhs.value().cloned();
                 let w2 = w0.and_then(|w0| w1.and_then(|w1| Value::known(w0 * w1)));
 
+                // assign the values to the cells
                 let w0 = region.assign_advice(|| "assign w0", self.w0, 0, || w0)?;
                 let w1 = region.assign_advice(|| "assign w1", self.w1, 0, || w1)?;
                 let w2 = region.assign_advice(|| "assign w2", self.w2, 0, || w2)?;
-                self.q_mul.enable(&mut region, 0)?;
 
+                // constrain the inputs
                 region.constrain_equal(w0.cell(), lhs.cell())?;
                 region.constrain_equal(w1.cell(), rhs.cell())?;
 
@@ -90,7 +97,9 @@ impl<F: Field> ArithmeticChip<F> {
             },
         )
     }
+    // ANCHOR_END: chip-mul
 
+    // ANCHOR: chip-add
     fn add(
         &self,
         layouter: &mut impl Layouter<F>,
@@ -100,15 +109,20 @@ impl<F: Field> ArithmeticChip<F> {
         layouter.assign_region(
             || "add",
             |mut region| {
+                // enable the addition gate
+                self.q_add.enable(&mut region, 0)?;
+
+                // compute cell values
                 let w0 = lhs.value().cloned();
                 let w1 = rhs.value().cloned();
                 let w2 = w0.and_then(|w0| w1.and_then(|w1| Value::known(w0 + w1)));
 
+                // assign the values to the cells
                 let w0 = region.assign_advice(|| "assign w0", self.w0, 0, || w0)?;
                 let w1 = region.assign_advice(|| "assign w1", self.w1, 0, || w1)?;
                 let w2 = region.assign_advice(|| "assign w2", self.w2, 0, || w2)?;
-                self.q_add.enable(&mut region, 0)?;
 
+                // constrain the inputs
                 region.constrain_equal(w0.cell(), lhs.cell())?;
                 region.constrain_equal(w1.cell(), rhs.cell())?;
 
@@ -116,6 +130,7 @@ impl<F: Field> ArithmeticChip<F> {
             },
         )
     }
+    // ANCHOR_END: chip-add
 
     fn free(
         &self,
@@ -147,6 +162,7 @@ struct TestConfig<F: Field + Clone> {
     w2: Column<Advice>,
 }
 
+// ANCHOR: configure
 impl<F: Field> Circuit<F> for TestCircuit<F> {
     type Config = TestConfig<F>;
     type FloorPlanner = SimpleFloorPlanner;
@@ -158,9 +174,8 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         }
     }
 
-    // ANCHOR: enable_equality
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
-        // let q_enable = meta.fixed_column();
+        // define advice columns
         let w0 = meta.advice_column();
         let w1 = meta.advice_column();
         let w2 = meta.advice_column();
@@ -180,7 +195,9 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
             w2,
         }
     }
+    // ANCHOR_END: configure
 
+    // ANCHOR: synthesize
     fn synthesize(
         &self,
         config: Self::Config, //
@@ -200,6 +217,7 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
 
         Ok(())
     }
+    // ANCHOR_END: synthesize
 }
 
 fn main() {

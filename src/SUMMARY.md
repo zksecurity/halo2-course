@@ -11,3 +11,4 @@
 - [Static Lookups](./static-lookups/index.md)
 - [Dynamic Lookups](./dynamic-lookups/index.md)
 - [Challenges](./challenges/index.md)
+- [Bonus: Circuit Architecture](./bonus-circuit-architecture/index.md)

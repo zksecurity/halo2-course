@@ -3,11 +3,11 @@ use std::marker::PhantomData;
 use halo2_proofs::{
     circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Selector},
+    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Fixed, Selector},
     poly::Rotation,
 };
 
-use ff::Field;
+use ff::{Field, PrimeField};
 
 struct TestCircuit<F: Field> {
     _ph: PhantomData<F>,
@@ -17,12 +17,13 @@ struct TestCircuit<F: Field> {
 #[derive(Clone, Debug)]
 struct TestConfig<F: Field + Clone> {
     _ph: PhantomData<F>,
-    q_enable: Selector,
+    q_mul: Selector,
+    q_fixed: Selector,
     advice: Column<Advice>,
+    fixed: Column<Fixed>,
 }
 
-impl<F: Field> TestCircuit<F> {
-    // ANCHOR: mul
+impl<F: PrimeField> TestCircuit<F> {
     /// This region occupies 3 rows.
     fn mul(
         config: &<Self as Circuit<F>>::Config,
@@ -42,49 +43,16 @@ impl<F: Field> TestCircuit<F> {
                 let w0 = region.assign_advice(|| "assign w0", config.advice, 0, || w0)?;
                 let w1 = region.assign_advice(|| "assign w1", config.advice, 1, || w1)?;
                 let w2 = region.assign_advice(|| "assign w2", config.advice, 2, || w2)?;
-                config.q_enable.enable(&mut region, 0)?;
+                config.q_mul.enable(&mut region, 0)?;
 
-                // ANCHOR: enforce_equality
                 // enforce equality between the w0/w1 cells and the lhs/rhs cells
                 region.constrain_equal(w0.cell(), lhs.cell())?;
                 region.constrain_equal(w1.cell(), rhs.cell())?;
-                // ANCHOR_END: enforce_equality
 
                 Ok(w2)
             },
         )
     }
-    // ANCHOR_END: mul
-
-    /// This region occupies 3 rows.
-    #[rustfmt::skip]
-    fn mul_sugar(
-        config: &<Self as Circuit<F>>::Config,
-        layouter: &mut impl Layouter<F>,
-        lhs: AssignedCell<F, F>,
-        rhs: AssignedCell<F, F>,
-    ) -> Result<AssignedCell<F, F>, Error> {
-        layouter.assign_region(
-            || "mul",
-            |mut region| {
-                let w0 = lhs.value().cloned();
-                let w1 = rhs.value().cloned();
-                let w2 =
-                    w0 //
-                        .and_then(|w0| w1.and_then(|w1| Value::known(w0 * w1)));
-
-// ANCHOR: copy
-// enforce equality between the w0/w1 cells and the lhs/rhs cells
-let _w0 = lhs.copy_advice(|| "assign w0", &mut region, config.advice, 0)?;
-let _w1 = rhs.copy_advice(|| "assign w1", &mut region, config.advice, 1)?;
-let w2 = region.assign_advice(|| "assign w2", config.advice, 2, || w2)?;
-config.q_enable.enable(&mut region, 0)?;
-// ANCHOR_END: copy
-
-            Ok(w2)
-        },
-    )
-}
 
     /// This region occupies 1 row.
     fn free(
@@ -101,9 +69,41 @@ config.q_enable.enable(&mut region, 0)?;
             },
         )
     }
+
+    // ANCHOR: fixed
+    /// This region occupies 1 row.
+    fn fixed(
+        config: &<Self as Circuit<F>>::Config,
+        layouter: &mut impl Layouter<F>,
+        value: F,
+        variable: AssignedCell<F, F>,
+    ) -> Result<(), Error> {
+        layouter.assign_region(
+            || "fixed",
+            |mut region| {
+                variable.copy_advice(
+                    || "assign variable", //
+                    &mut region,
+                    config.advice,
+                    0,
+                )?;
+                region.assign_fixed(
+                    || "assign constant",
+                    config.fixed, //
+                    0,
+                    || Value::known(value),
+                )?;
+
+                // turn the gate on
+                config.q_fixed.enable(&mut region, 0)?;
+                Ok(())
+            },
+        )
+    }
+    // ANCHOR_END: fixed
 }
 
-impl<F: Field> Circuit<F> for TestCircuit<F> {
+impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
     type Config = TestConfig<F>;
     type FloorPlanner = SimpleFloorPlanner;
 
@@ -114,17 +114,13 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
         }
     }
 
-    // ANCHOR: enable_equality
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
-        // let q_enable = meta.fixed_column();
-        let q_enable = meta.complex_selector();
+        let q_mul = meta.complex_selector();
         let advice = meta.advice_column();
 
         // enable equality constraints
         meta.enable_equality(advice);
-        // ANCHOR_END: enable_equality
 
-        // ANCHOR: new_gate
         // define a new gate:
         //
         // Advice
@@ -135,18 +131,35 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
             let w0 = meta.query_advice(advice, Rotation(0));
             let w1 = meta.query_advice(advice, Rotation(1));
             let w3 = meta.query_advice(advice, Rotation(2));
-            let q_enable = meta.query_selector(q_enable);
+            let q_enable = meta.query_selector(q_mul);
             vec![q_enable * (w0 * w1 - w3)]
         });
-        // ANCHOR: new_gate
+
+        // ANCHOR: fixed_gate
+        // selector for the fixed column
+        let q_fixed = meta.complex_selector();
+
+        // add a new fixed column
+        let fixed = meta.fixed_column();
+
+        meta.create_gate("equal-constant", |meta| {
+            let w0 = meta.query_advice(advice, Rotation::cur());
+            let c1 = meta.query_fixed(fixed, Rotation::cur());
+            let q_fixed = meta.query_selector(q_fixed);
+            vec![q_fixed * (w0 - c1)]
+        });
+        // ANCHOR_END: fixed_gate
 
         TestConfig {
             _ph: PhantomData,
-            q_enable,
+            q_mul,
+            q_fixed,
             advice,
+            fixed,
         }
     }
 
+    // ANCHOR: synthesize
     fn synthesize(
         &self,
         config: Self::Config, //
@@ -154,13 +167,41 @@ impl<F: Field> Circuit<F> for TestCircuit<F> {
     ) -> Result<(), Error> {
         let a = TestCircuit::<F>::free(&config, &mut layouter, self.secret.clone())?;
 
-        // do a few multiplications
-        let a2 = TestCircuit::<F>::mul(&config, &mut layouter, a.clone(), a.clone())?;
-        let a3 = TestCircuit::<F>::mul(&config, &mut layouter, a2.clone(), a.clone())?;
-        let _a5 = TestCircuit::<F>::mul(&config, &mut layouter, a3.clone(), a2.clone())?;
+        // a2 = a * a = a^2
+        let a2 = TestCircuit::<F>::mul(
+            &config,
+            &mut layouter, //
+            a.clone(),
+            a.clone(),
+        )?;
+
+        // a3 = a2 * a = a^3
+        let a3 = TestCircuit::<F>::mul(
+            &config,
+            &mut layouter, //
+            a2.clone(),
+            a.clone(),
+        )?;
+
+        // a5 = a3 * a2 = a^5
+        let a5 = TestCircuit::<F>::mul(
+            &config,
+            &mut layouter, //
+            a3.clone(),
+            a2.clone(),
+        )?;
+
+        // fix the value 1337
+        TestCircuit::<F>::fixed(
+            &config,
+            &mut layouter, //
+            F::from_u128(4272253717090457),
+            a5,
+        )?;
 
         Ok(())
     }
+    // ANCHOR_END: synthesize
 }
 
 fn main() {

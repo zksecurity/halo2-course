@@ -25,5 +25,9 @@ aliases = ["ex"]
 [output]
 
 [output.html]
-additional-css = ["./mdbook-admonish.css", "./mdbook-admonish-custom.css", "././mdbook-admonish.css"]
+additional-css = [
+    "./mdbook-admonish.css",
+    "./mdbook-admonish-custom.css",
+    "././mdbook-admonish.css",
+]
 mathjax-support = true

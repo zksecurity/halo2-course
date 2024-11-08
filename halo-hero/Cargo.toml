@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 ff = "0.13"
 halo2_proofs = { git = "https://github.com/scroll-tech/halo2.git", branch = "v1.1" }
+rand = "0.8"
+rand_chacha = "0.3.1"
