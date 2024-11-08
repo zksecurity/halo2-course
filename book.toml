@@ -4,7 +4,6 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Halo Hero"
-build-dir = "docs"
 
 [build]
 extra-watch-dirs = ["halo-hero"]
@@ -13,21 +12,18 @@ extra-watch-dirs = ["halo-hero"]
 
 [preprocessor.admonish]
 command = "mdbook-admonish"
-assets_version = "3.0.2" # do not edit: managed by `mdbook-admonish install`
+assets_version = "2.0.0" # do not edit: managed by `mdbook-admonish install`
 
 
-[preprocessor.admonish.directive.custom.exercise]
+[[preprocessor.admonish.custom]]
+directive = "exercise"
 icon = "./rocket.svg"
-color = "#ff0000"
-aliases = ["ex", "exercise"]
-
-[preprocessor.admonish.directive.custom.think]
-icon = "./rocket.svg"
-color = "#ff0000"
-
+# magenta
+color = "#FFA62B"
+aliases = ["ex"]
 
 [output]
 
 [output.html]
-additional-css = ["./mdbook-admonish.css"]
-
+additional-css = ["./mdbook-admonish.css", "./mdbook-admonish-custom.css", "././mdbook-admonish.css"]
+mathjax-support = true

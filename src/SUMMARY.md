@@ -1,5 +1,6 @@
 # Summary
 
+- [Introduction](./intro/index.md)
 - [Halo World](./halo-world/index.md)
 - [Endless Spreadsheets](./endless-spreadsheets/index.md)
 - [Regions](./multiple-regions/index.md)
@@ -10,6 +11,3 @@
 - [Static Lookups](./static-lookups/index.md)
 - [Dynamic Lookups](./dynamic-lookups/index.md)
 - [Challenges](./challenges/index.md)
-- [Recursion (Snark-Verifier)](./recursion/index.md)
-- [Gadgets](./gadgets/index.md)
-- [zkEVM](./zkevm/index.md)

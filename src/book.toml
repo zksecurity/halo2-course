@@ -1,0 +1,6 @@
+[book]
+authors = ["Mathias Hall-Andersen"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Halo Hero"
