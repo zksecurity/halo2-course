@@ -4,17 +4,6 @@
 
 *What if I don't know what I want to look up?*
 
-```admonish cite
-- *Alice*: Would you tell me, please, which way I ought to go from here?
-- *The Cheshire Cat*: That depends a good deal on where you want to get to.
-- *Alice*: I don't much care where.
-- *The Cheshire Cat*: Then it doesn't much matter which way you go.
-- *Alice*: ...So long as I get somewhere.
-- *The Cheshire Cat*: Oh, you're sure to do that, if only you walk long enough.
-
--- Alice in Wonderland, Lewis Carroll
-```
-
 ## Dynamic Lookups
 
 The previous section introduced the concept of lookups.
@@ -54,30 +43,6 @@ all the other lookups can be "nopped out" and the result of the lookup is ignore
 If every instruction previously required a separate circuit with $m$ gates and we have $n$ instructions,
 the dynamic lookup approach requires only $n$ tables with $m$ rows each whereas the original approach would require \\( n \cdot m \\) gates.
 
-<!--
-A CPU (register machine) is in principle a very simple machine.
-It executes a sequence of "stages":
-
-- Instruction Fetch: fetch the next instruction from memory.
-- Instruction Decode: decode the instruction and determine the operation to be performed.
-- Execution: perform the operation.
-- Write-back: write the result back to memory/register.
-
-Over and over again.
-
-Dynamic lookups are useful in all these stages, but let us focus on the `Execution` stage:
-a CPU
-
-In this section, we will introduce the concept of dynamic lookups,
-and show how they can be implemented in Halo2.
-
-We will do this by creating a very simple zkVM:
-we will verify the execution of (a subset of) the AVR instruction set by Atmel.
-These microcontrollers are most commonly known from the Arduino series of development boards
-
-https://ww1.microchip.com/downloads/en/devicedoc/atmel-0856-avr-instruction-set-manual.pdf
--->
-
 ## Example: Conditional Hashing
 
 The example that we are going to explore is a gate that conditionally hashes a value, i.e.
@@ -114,11 +79,19 @@ But in order to keep things simple, we will use a simplified and round-reduced v
 
 ### The Poseidon Hash Function
 
+```admonish warning
+The simplified Poseidon used in this example is **not secure** for cryptographic use!
+
+It's a round-reduced variant with the same round function for all rounds.
+```
+
 Our simplified Poseidon hash function has a state width of 3 field elements and 8 rounds,
 we split the state into two parts: the "RATE" and the "CAPACITY" part:
+
 ```rust
-{{#include ../../halo-hero/examples/lookup-dynamic.rs:poseidon_params}}
+{{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_params}}
 ```
+
 The `CAPACITY` part is the "internal state" of the hash function, while the message to be hashed is added to the "RATE" part.
 As mentioned above there are 8 rounds in the hash function, each round consists of the following operations:
 

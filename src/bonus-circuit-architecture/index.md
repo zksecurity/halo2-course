@@ -1,6 +1,6 @@
 # Bonus: Circuit Architecture
 
-<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+<svg width="100%" height="400" xmlns="http://www.w3.org/2000/svg">
   <circle cx="400" cy="150" r="80" fill="#FFD700" />
   <rect x="100" y="200" width="300" height="150" fill="#4169E1" transform="rotate(-15)" />
   <polygon points="600,100 700,150 600,200 500,150" fill="#FF4500" />

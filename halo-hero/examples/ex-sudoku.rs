@@ -143,12 +143,12 @@ impl<F: Field> ChallengeChip<F> {
         &self, //
         layouter: &mut impl Layouter<F>,
     ) -> Result<Variable<F>, Error> {
-        let value = layouter.get_challenge(self.challenge);
+        let chal = layouter.get_challenge(self.challenge);
         layouter.assign_region(
             || "challenge",
             |mut region| {
                 self.q_enable.enable(&mut region, 0)?;
-                let val = region.assign_advice(|| "w0", self.advice, 0, || value)?;
+                let val = region.assign_advice(|| "w0", self.advice, 0, || chal)?;
                 Ok(Variable {
                     mul: F::ONE,
                     add: F::ZERO,
@@ -499,13 +499,17 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         meta.enable_equality(w1);
         meta.enable_equality(w2);
 
+        // ANCHOR: challenge_alloc
         let alpha = meta.challenge_usable_after(FirstPhase);
+        // ANCHOR_END: challenge_alloc
 
         let phase1_chip = ArithmeticChip::configure(meta, w0, w1, w2, c0, c1, c2, cc, cm);
 
+        // ANCHOR: phase2_alloc
         let w0_phase2 = meta.advice_column_in(SecondPhase);
         let w1_phase2 = meta.advice_column_in(SecondPhase);
         let w2_phase2 = meta.advice_column_in(SecondPhase);
+        // ANCHOR_END: phase2_alloc
 
         meta.enable_equality(w0_phase2);
         meta.enable_equality(w1_phase2);

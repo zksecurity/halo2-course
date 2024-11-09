@@ -62,12 +62,28 @@ impl<F: Field> ChallengeChip<F> {
 }
 // ANCHOR_END: challenge_chip
 
+// ANCHOR: challenge_access
+impl<F: Field> ChallengeChip<F> {
+    fn challenge(
+        &self, //
+        layouter: &mut impl Layouter<F>,
+    ) -> Result<AssignedCell<F, F>, Error> {
+        let chal = layouter.get_challenge(self.challenge);
+        layouter.assign_region(
+            || "challenge",
+            |mut region| region.assign_advice(|| "chl", self.advice, 0, || chal),
+        )
+    }
+}
+// ANCHOR_END: challenge_access
+
 #[derive(Clone, Debug)]
 struct TestConfig<F: Field + Clone> {
     _ph: PhantomData<F>,
     challenge_chip: ChallengeChip<F>,
 }
 
+// ANCHOR: configure
 impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
     type Config = TestConfig<F>;
     type FloorPlanner = SimpleFloorPlanner;
@@ -79,37 +95,38 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
         // let q_enable = meta.fixed_column();
         let w0 = meta.advice_column();
-        let w1 = meta.advice_column();
-        let w2 = meta.advice_column();
 
         // enable equality constraints
         meta.enable_equality(w0);
-        meta.enable_equality(w1);
-        meta.enable_equality(w2);
 
+        // ANCHOR: challenge_alloc
         let alpha = meta.challenge_usable_after(FirstPhase);
+        // ANCHOR_END: challenge_alloc
 
+        // ANCHOR: phase2_alloc
         let w0_phase2 = meta.advice_column_in(SecondPhase);
-        let w1_phase2 = meta.advice_column_in(SecondPhase);
-        let w2_phase2 = meta.advice_column_in(SecondPhase);
+        // ANCHOR_END: phase2_alloc
 
         meta.enable_equality(w0_phase2);
-        meta.enable_equality(w1_phase2);
-        meta.enable_equality(w2_phase2);
 
         TestConfig {
-            challenge_chip: ChallengeChip::configure(meta, alpha, w0),
+            challenge_chip: ChallengeChip::configure(meta, alpha, w0_phase2),
             _ph: PhantomData,
         }
     }
+    // ANCHOR_END: configure
 
+    // ANCHOR: synthesize
     fn synthesize(
         &self,
         config: Self::Config, //
         mut layouter: impl Layouter<F>,
     ) -> Result<(), Error> {
+        let chal: AssignedCell<F, F> = config.challenge_chip.challenge(&mut layouter)?;
+
         Ok(())
     }
+    // ANCHOR_END: synthesize
 }
 
 fn main() {
