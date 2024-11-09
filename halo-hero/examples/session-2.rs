@@ -1,9 +1,9 @@
-use std::{marker::PhantomData, net::IpAddr};
+use std::marker::PhantomData;
 
 use halo2_proofs::{
-    circuit::{layouter, AssignedCell, Layouter, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Fixed, Selector},
+    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Fixed, Selector},
     poly::Rotation,
 };
 

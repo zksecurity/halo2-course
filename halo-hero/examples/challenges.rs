@@ -1,10 +1,7 @@
-use std::{
-    marker::PhantomData,
-    ops::{Add, Mul, Neg, Sub},
-};
+use std::marker::PhantomData;
 
 use halo2_proofs::{
-    circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, SimpleFloorPlanner},
     dev::MockProver,
     plonk::{
         Advice,
@@ -13,9 +10,7 @@ use halo2_proofs::{
         Column, //
         ConstraintSystem,
         Error,
-        Expression,
         FirstPhase,
-        Fixed,
         SecondPhase,
         Selector,
     },

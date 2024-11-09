@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use halo2_proofs::{
-    circuit::{layouter, AssignedCell, Layouter, Region, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, Region, SimpleFloorPlanner, Value},
     dev::MockProver,
     plonk::{
         self, Advice, Circuit, Column, ConstraintSystem, Error, Expression, Selector, TableColumn,
@@ -9,7 +9,7 @@ use halo2_proofs::{
     poly::Rotation,
 };
 
-use ff::{BitViewSized, Field, PrimeFieldBits};
+use ff::PrimeFieldBits;
 
 #[derive(Clone, Debug)]
 struct RangeTable<F: PrimeFieldBits, const BITS: usize> {

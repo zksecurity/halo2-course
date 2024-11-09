@@ -1,23 +1,22 @@
 use std::marker::PhantomData;
 
 use halo2_proofs::{
-    circuit::{layouter, AssignedCell, Layouter, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
     halo2curves::bn256::{Bn256, G1Affine},
     plonk::{
         create_proof, keygen_pk, keygen_vk, verify_proof, Advice, Circuit, Column,
-        ConstraintSystem, Error, Expression, Fixed, Instance, Selector, TableColumn,
+        ConstraintSystem, Error, Fixed, Instance, Selector, TableColumn,
     },
     poly::{
-        commitment::Prover,
         kzg::{
             commitment::{KZGCommitmentScheme, ParamsKZG},
             multiopen::{ProverSHPLONK, VerifierSHPLONK},
             strategy::SingleStrategy,
         },
-        Rotation, VerificationStrategy,
+        Rotation,
     },
-    transcript::{self, Blake2bRead, Blake2bWrite, Challenge255, TranscriptReadBuffer},
+    transcript::{Blake2bRead, TranscriptReadBuffer},
 };
 
 use ff::{Field, PrimeField};

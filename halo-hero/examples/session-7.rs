@@ -1,12 +1,12 @@
 use std::marker::PhantomData;
 
 use halo2_proofs::{
-    circuit::{AssignedCell, Layouter, Region, SimpleFloorPlanner, Value},
+    circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
     dev::MockProver,
     halo2curves::bn256::{Bn256, G1Affine},
     plonk::{
         self, create_proof, keygen_pk, keygen_vk, Advice, Challenge, Circuit, Column,
-        ConstraintSystem, Error, Expression, FirstPhase, Phase, SecondPhase, Selector,
+        ConstraintSystem, Error, Expression, FirstPhase, SecondPhase, Selector,
     },
     poly::{
         kzg::{

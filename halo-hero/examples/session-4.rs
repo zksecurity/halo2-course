@@ -1,4 +1,4 @@
-use std::{iter, marker::PhantomData};
+use std::marker::PhantomData;
 
 use halo2_proofs::{
     circuit::{AssignedCell, Layouter, SimpleFloorPlanner, Value},
