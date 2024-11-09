@@ -17,9 +17,7 @@ use halo2_proofs::{
         },
         Rotation, VerificationStrategy,
     },
-    transcript::{
-        self, Blake2bRead, Blake2bWrite, Challenge255, PoseidonWrite, TranscriptReadBuffer,
-    },
+    transcript::{self, Blake2bRead, Blake2bWrite, Challenge255, TranscriptReadBuffer},
 };
 
 use ff::{Field, PrimeField};
@@ -434,7 +432,8 @@ fn main() {
     let prover = MockProver::run(k, &circuit, vec![instances.clone()]).unwrap();
     prover.verify().unwrap();
 
-    /*
+    println!("create proof");
+
     let vk_circuit = TestCircuit::<Fr> {
         _ph: PhantomData,
         a: Value::unknown(),
@@ -443,11 +442,11 @@ fn main() {
 
     let mut rng = rand::thread_rng();
     use halo2_proofs::transcript::{Blake2bWrite, Challenge255, TranscriptWriterBuffer};
-        let mut transcript = Blake2bWrite::<_, _, Challenge255<_>>::init(vec![]);
+    let mut transcript = Blake2bWrite::<_, _, Challenge255<_>>::init(vec![]);
 
-        let srs = ParamsKZG::setup(8, &mut rng);
-        let vk = keygen_vk(&srs, &vk_circuit).unwrap(); // public
-        let pk = keygen_pk(&srs, vk.clone(), &circuit).unwrap();
+    let srs = ParamsKZG::setup(k, &mut rng);
+    let vk = keygen_vk(&srs, &vk_circuit).unwrap(); // public
+    let pk = keygen_pk(&srs, vk.clone(), &circuit).unwrap();
 
     create_proof::<
         KZGCommitmentScheme<Bn256>,
@@ -486,5 +485,4 @@ fn main() {
         &mut transcript,
     )
     .unwrap();
-    */
 }

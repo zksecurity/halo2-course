@@ -5,15 +5,11 @@ use halo2_proofs::{
     dev::MockProver,
     plonk::{
         Advice,
-        Challenge,
         Circuit,
         Column, //
         ConstraintSystem,
         Error,
-        Expression,
-        FirstPhase,
         Fixed,
-        SecondPhase,
         Selector,
         TableColumn,
     },
