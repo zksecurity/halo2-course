@@ -4,8 +4,8 @@
 
 *Okay, circuits have chips, right?, oh! and regions!*
 
-Up till this point we have had *a single large region*,
-although this is a useful technique because it allows easy "repeating" computation, by referring to neighboring cells,
+Up until this point we have had *a single large region*,
+although this is a useful technique because it allows easy "repeating" computation by referring to neighboring cells,
 it would be a hard way to build circuits in general:
 normally, we like to compartmentalize and compose smaller things into larger things.
 Whether in software engineering or hardware design, this is a common pattern,
@@ -18,7 +18,7 @@ This will enable us to create more complex circuits in a more modular way by bui
 
 ## Another Gate
 
-Okay new gate time...
+Okay, new gate time...
 
 Change the `configure` function into:
 
@@ -59,7 +59,6 @@ This code is not safe (yet)! Can you see why?
 We will get to that when we explore equality constraints.
 ```
 
-
 In order to use this function, we will also need some way to *create* assigned cells.
 To do this we create a function which allocates a small (1 row) region, enables no gates and simply returns the cell:
 
@@ -82,8 +81,7 @@ As hinted at in the warning, this code is <u>not safe</u>!
 
 The problem is that equality is not enforced between:
 
-- The assigned cells
-`lhs`/`rhs`
+- The assigned cells `lhs`/`rhs`
 - The assigned cells `w0`/`w1`
 
 A malicious prover could set `w0` and `w1` to arbitrary values

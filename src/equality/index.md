@@ -27,7 +27,7 @@ And we need to add equality constraints between the cells when we assign regions
 {{#include ../../halo-hero/examples/equality.rs:mul}}
 ```
 
-Because manually assigning a value from another cell, only to then enforce equality it to the same cell, is very common, cumbersome and error-prone,
+Because manually assigning a value from another cell, only to then enforce equality to the same cell, is very common, cumbersome and error-prone,
 Halo2 provides a handy function which "copies" one cell to another:
 
 ```rust,noplaypen
@@ -44,7 +44,7 @@ The full code is available at the bottom of the page.
 **Exercise:**
 Try reimplementing the attack from the previous section.
 
-Does the circuit reject the assigment now?
+Does the circuit reject the assignment now?
 ```
 
 ```rust,noplaypen

@@ -13,8 +13,8 @@ This is fine if you know all the values you want to look up at compile time
 and the set is small enough (e.g. the XOR table of 8-bit values).
 But what if you don't? Or maybe the table would be too large to encode explicitly?
 
-In this section we will introduce the concept of dynamic lookups,
-it is a natural extension of the static lookups we have seen so far:
+In this section we will introduce the concept of dynamic lookups.
+It is a natural extension of the static lookups we have seen so far:
 rather than looking up rows in `Constant` columns we will look up rows in `Advice` columns.
 Such dynamic lookups are widely used in machine emulation, let us start by getting a grasp of why such lookups are useful.
 
@@ -38,7 +38,7 @@ $$(a, b, a + b)$$
 
 2. When emulating the CPU, we can then do a lookup in each table to retrieve the result for every possible instruction and then multiplex the results.
 
-The key insight is that we need only a single row to the table for the instruction we are actually executing:
+The key insight is that we need only a single row in the table for the instruction we are actually executing:
 all the other lookups can be "nopped out" and the result of the lookup is ignored.
 If every instruction previously required a separate circuit with $m$ gates and we have $n$ instructions,
 the dynamic lookup approach requires only $n$ tables with $m$ rows each whereas the original approach would require \\( n \cdot m \\) gates.
@@ -130,10 +130,10 @@ The table will contain the following columns:
 {{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_table}}
 ```
 
-Some explaination is in order:
+Some explanation is in order:
 
 - `matrix` is the fixed matrix M from the `Mix` operation.
-- `round_constants` are the constants a, b, c from the `AddRoundConstant` operation. \
+- `round_constants` are the constants a, b, c from the `AddRoundConstant` operation.
 - `flag_start` is a flag that indicates the start of a new hash invocation.
 - `flag_round` is a flag that indicates that the Poseidon round should be applied.
 - `flag_final` is a flag that indicates that the result is ready.
@@ -173,7 +173,7 @@ The start constraint in its totality is as follows:
 {{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_start}}
 ```
 
-What this enfoces is:
+What this enforces is:
 
 - `inp1.cur() = col[0].cur()` : load the first input into the first element of the state.
 - `inp2.cur() = col[1].cur()` : load the second input into the second element of the state.
@@ -209,7 +209,7 @@ We then add the round constants to the state:
 
 Note that this results in an array of `Expression`s: in what follows we are essentially composing constraints
 as if we were applying functions to concrete values.
-We now apply the Sbox to the elements of the state:
+We now apply the SBox to the elements of the state:
 
 ```rust,ignore
 {{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_round_sbox}}
@@ -239,7 +239,7 @@ $$(x', y', z') = \text{PoseidonRound}(\mathsf{st} = (x, y, z), \mathsf{rndc} = (
 
 ### Filling in the Poseidon Table
 
-To aide in the construction of the Poseidon table, we can define a simple helper function that fills in a single row:
+To aid in the construction of the Poseidon table, we can define a simple helper function that fills in a single row:
 
 ```rust,ignore
 {{#include ../../halo-hero/examples/conditional-poseidon.rs:poseidon_assign_row}}
@@ -260,7 +260,7 @@ The flags and round constants are fixed however.
 
 ## The Poseidon Chip
 
-At this point we have a table, garunteed to contain correct invocations of the Poseidon hash function.
+At this point we have a table, guaranteed to contain correct invocations of the Poseidon hash function.
 Now we need to create a chip that can look up the entries (input/output pairs) in the table dynamically
 so we can "use the hash function" in a circuit.
 
@@ -275,7 +275,7 @@ Towards this end, we define a chip responsible for looking up the Poseidon table
 The fields are mostly self-explanatory, but here is a brief overview:
 
 - `inputs` is a simple way for us to collect all the inputs to the Poseidon hash function we encounter during witness generation.
-  Whenever we are asked to hash a pair of values \\( (x, y) \\), we simple hash then out-of-circuit \\( \mathsf{Hash}(x, y) \\) then we add them to this list.
+  Whenever we are asked to hash a pair of values \\( (x, y) \\), we simply hash them out-of-circuit \\( \mathsf{Hash}(x, y) \\) then we add them to this list.
 
 - `sel` is just a selector to turn on this chip at the current offset.
 
@@ -311,7 +311,7 @@ $$
 
 This *dynamic* value will be used to turn the lookup "on" and "off".
 
-In order for us to access the Poseidon table, we need to gain access to it's columns,
+In order for us to access the Poseidon table, we need to gain access to its columns,
 to do this we follow the approach of PSE and create a little helper which reads the column expressions.
 This is done by `let table = tbl.table_expr(cells);` and
 inside `table_expr` we simply query the columns at the current offset and return the resulting expressions:
@@ -331,7 +331,7 @@ What do you think would happen if we did not include `flag_final` in the lookup?
 ```admonish answer
 If we did not include `flag_final` in the lookup, the prover would be able to lookup any row in the table,
 not just the ones corresponding to the *full* evaluation of the Poseidon hash function.
-For instance, he could lookup the first row of a Poseidon applicaion:
+For instance, he could lookup the first row of a Poseidon application:
 | flag_start | flag_round | flag_final | inp1 | inp2 | rndc1 | rndc2 | rndc3 | col1 | col2 | col3 |
 |------------|------------|------------|------|------|-------|-------|-------|------|------|------|
 | 1          | 1          | 0          | x    | y    | a1    | b1    | c1    | x    | y    | 0    |
@@ -340,7 +340,7 @@ This row does not represent a complete hash computation, but only the initial st
 The prover could then claim that this initial state is the result of the hash function,
 which would yield trivial collisions: \\( \mathsf{Hash}(x, y) = x = \mathsf{Hash}(x, y') \\) for any \\( y' \\).
 
-The flag `flag_final` is used to mark results "read for consumption" avoding this issue.
+The flag `flag_final` is used to mark results "ready for consumption" avoiding this issue.
 ```
 
 ### Synthesizing
@@ -357,7 +357,7 @@ computes the Poseidon hash function out-of-circuit,
 and assigns the inputs/output pairs of the Poseidon chip.
 Finally, we turn on the selector `sel` for the Poseidon chip (lookup).
 This constrains the inputs/output pair to be in the Poseidon table,
-which will only be the case if the Poseidon hash function was correctly evaluated.out-of-circuit.
+which will only be the case if the Poseidon hash function was correctly evaluated out-of-circuit.
 
 After the last `hash` invocation, we need to finalize the Poseidon chip:
 

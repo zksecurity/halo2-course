@@ -50,7 +50,7 @@ An instance of the `ArithmeticChip` can be created at configuration time for the
 
 Which in turn will invoke a method called `configure` on the `ArithmeticChip`.
 We will get to that in a bit.
-A natrual question at this point arises:
+A natural question at this point arises:
 
 ```admonish question title="Why do we define the columns in the configure of the TestCircuit?"
 
@@ -69,7 +69,7 @@ Configuration of the `ArithmeticChip` should be relatively straightforward to th
 {{#include ../../halo-hero/examples/chips.rs:chip-configure}}
 ```
 
-The only different from pervious examples is that the inputs/outputs are now stored next to each other in the `Advice` columns,
+The only difference from previous examples is that the inputs/outputs are now stored next to each other in the `Advice` columns,
 rather than stacked on top of each other in the same column.
 
 At this point we are ready to add some methods to our `ArithmeticChip` to create regions for addition and multiplication:
@@ -91,7 +91,7 @@ Finally, we can use the `ArithmeticChip` in the `TestCircuit` during `synthesize
 ```
 
 That's pretty much chips in a nutshell:
-they are simply a collection of functionality, with convienent methods
+they are simply a collection of functionality, with convenient methods
 to create regions.
 In the exercises we explore how to use a more complex chip along with custom types.
 
@@ -118,7 +118,7 @@ Where:
 
 - `cm` is the multiplication *constant* (`Column<Fixed>`)
 - `c0`, `c1`, `c2` are linear *constants* (`Column<Fixed>`)
-- `cc` is a additive *constant* (`Column<Fixed>`)
+- `cc` is an additive *constant* (`Column<Fixed>`)
 - `w0`, `w1`, `w2` are the advice cells (`Column<Advice>`)
 
 ```admonish exercise
@@ -176,7 +176,7 @@ The value of a `Variable` is `mul * val + add` where `mul` and `add` are fixed f
 
 ```admonish exercise
 Update the `ArithmeticChip` to use the new `Variable` struct for addition/multiplication:
-accounting for the new multiplicative and addivitive constants.
+accounting for the new multiplicative and additive constants.
 ```
 
 ```admonish hint

@@ -58,21 +58,21 @@ For now we will just make a few observations:
 - The `Circuit<F>` trait is generic over the finite field `F` for which the circuit is defined. \
    In the example above, we implement `Circuit<F>` for every `TestCircuit<F>`.
 
-- You might not always be able to make your circuit generic over every field: because it relies on field-specific properties. Perhaps the field needs to be of a a certain size, or you might need the ability to convert an integer to a field element -- which requires `F: PrimeField`. \
+- You might not always be able to make your circuit generic over every field because it relies on field-specific properties. Perhaps the field needs to be of a certain size, or you might need the ability to convert an integer to a field element -- which requires `F: PrimeField`. \
   In practice, every circuit is over a prime field :)
 
 - The `Circuit<F>` trait has two associated types: `Config` and `FloorPlanner`. \
   The floor planner is not that important, but we will touch on it in the next chapter.
 
-- The `without_witnesses` function is used to the verifier to create an instance of the circuit without any witness data.
+- The `without_witnesses` function is used by the verifier to create an instance of the circuit without any witness data.
   This is required to compute the verification key, which would otherwise require the verifier to know a witness for the circuit in order to generate the verification key required to check the SNARK -- which would partly defeat the purpose.
 
 All of this brings us to the two most central concepts in Halo2. \
-In Halo2, there are steps in creating a circuit:
+In Halo2, there are two steps in creating a circuit:
 
 #### Configuration
 
-This is implemented by the  `configure` function.
+This is implemented by the `configure` function.
 
 The high-level task of configuration is to define the available collection of gates in the circuit.
 

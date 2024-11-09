@@ -4,11 +4,11 @@
 
 *Instance, public input, statement, whatever.*
 
-So far, every circuit we have defined has been specific to a statement we wanted the prover to statisfy.
+So far, every circuit we have defined has been specific to a statement we wanted the prover to satisfy.
 This would be of no use for, e.g. a zk-rollup / validium.
-We would need a seperate circuit for every state transition:
-in a zk-rollup the circuit shows that a transition between commitments to two adjacent states is valid, without public inputs we would need a seperate circuit for every such pair of commitments. Ouch.
-This in-turn would require the verifier to regenerate the verification key for every such new circuit, a very expensive operation, which would defeat the purpose of zk-rollups / validiums : that verification is faster than execution.
+We would need a separate circuit for every state transition:
+in a zk-rollup the circuit shows that a transition between commitments to two adjacent states is valid, without public inputs we would need a separate circuit for every such pair of commitments. Ouch.
+This in turn would require the verifier to regenerate the verification key for every such new circuit, a very expensive operation, which would defeat the purpose of zk-rollups / validiums: that verification is faster than execution.
 
 The solution is `Instance` columns.
 You can think of instances/public inputs as parameterizing the circuit:
@@ -16,7 +16,7 @@ for every assignment (known to the verifier) the prover can be asked to provide 
 In other, computer science, words:
 the SNARK proves satisfiability of some NP relation \\( \mathcal{R} \\):
 \\[
-  \mathcal{R}(\mathsf{x}, \mathsf{w})) = 1
+  \mathcal{R}(\mathsf{x}, \mathsf{w}) = 1
 \\]
 Where \\( \mathsf{x} \\), the statement, is known to both parties and \\( \mathsf{w} \\), the witness (advice column assignments), is known only to the prover.
 So far we have always had \\( \mathsf{x} \\) be the empty string.
@@ -30,8 +30,8 @@ as opposed to the `Advice` column, which are only known to the prover.
 Because `Instance` columns themselves are pretty simple,
 we are going to visit some additional techniques in the examples below:
 as a bit of a throwback to the very first circuit we defined,
-we will define a circuit that takes a index and returns the fibonacci number at that index.
-This means that the circuit must be able to a accomodate a variable number of "steps" in the fibonacci sequence.
+we will define a circuit that takes an index and returns the fibonacci number at that index.
+This means that the circuit must be able to accommodate a variable number of "steps" in the fibonacci sequence.
 
 Our circuit will have 5 columns:
 
@@ -44,7 +44,7 @@ Our circuit will have 5 columns:
 
 - `q_step`: this is the `Selector` column which turns on the sole gate: the "fibonacci" gate.
 
-- `instance`:  `Instance` column which will contain the index of the fibonacci number we want.
+- `instance`: `Instance` column which will contain the index of the fibonacci number we want.
 
 Looks like this:
 
@@ -60,7 +60,6 @@ This gate is by far the most complex gate we have defined so far, so hold on to 
 ```rust,no_run,noplaypen
 {{#include ../../halo-hero/examples/instances.rs:gate}}
 ```
-
 
 The layout of the gate is as follows:
 
@@ -90,7 +89,7 @@ Why is this?
 ## The Fibonacci Circuit
 
 The circuit is simply turning on the "fibonacci" gate for some number of rows.
-We save the cells from all these assignments, finally we export the intial state and the final state as instances.
+We save the cells from all these assignments, finally we export the initial state and the final state as instances.
 
 We will break it down in the next section, but here it is in all its glory:
 

@@ -45,7 +45,7 @@ We will see much more complex examples of "programming" gates in subsequent sect
 ## Constants in Equality Constraints
 
 Another, less common, use of fixed columns is to enforce equality between a cell and a constant by enabling equality constraints on a fixed column.
-Using this strategy, we do not need a seperate gate,
+Using this strategy, we do not need a separate gate,
 we simply define a fixed column and enable equality constraints on it:
 
 ```rust,noplaypen

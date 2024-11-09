@@ -5,17 +5,18 @@
 *Let's write some ~circuits~ weird machines*
 
 
-In this installment we will introduce the concept of *lookups*.
+In this installment, we will introduce the concept of *lookups*.
 
 Rather than trotting through yet another example with range checks,
 we will explore *lookups* by creating a
 "circuit" that can (very efficiently) match regular expressions.
-Regular expression matching has been used in projects such as [zk-email](https://blog.aayushg.com/zkemail/), although the approach outlined here is substantially more efficient than that of [zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata).
+Regular expression matching has been used in projects such as [zk-email](https://blog.aayushg.com/zkemail/),
+although the approach outlined here is more efficient than that of [zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata).
 
 You might already be thinking that regular expressions are not very efficient to check using a circuit over a finite field,
 and you would be right.
 Fortunately, lookups enable us to implement this kind of very non-field-friendly functionality in an efficient way.
-It might also sound complicated, but in fact the whole circuit fits in just over 200 lines of code.
+It might also sound complicated, but in fact, the whole (barebones) circuit fits in just over 200 lines of code.
 
 ## Brief Detour: Regular Expressions
 
@@ -26,7 +27,7 @@ Now they have two problems.
 -- Jamie Zawinski
 ```
 
-The particular regular expression we will match is `a+b+c` meaning:
+The particular regular expression we will match is `a+b+c`, meaning:
 
 - One or more `a`s.
 - Followed by one or more `b`s.
@@ -43,12 +44,12 @@ But not:
 - `bbbc`
 - `aaac`
 
-For us, the convient way to view a regular expression is
+For us, the convenient way to view a regular expression is
 as a "Non-Deterministic Finite Automaton" (NFA).
 You can visualize this as a directed graph where each node is a state
 and every edge is labeled with a character.
-You are allowed to move between states if the next charecter in the string matches the edge label.
-For instance, for our regular expression `a+b+c` an NFA would look like this:
+You are allowed to move between states if the next character in the string matches the edge label.
+For instance, for our regular expression `a+b+c`, an NFA would look like this:
 
 ![Regex](./nfa.svg)
 
@@ -88,7 +89,7 @@ In Rust we could encode this table as follows:
 ```
 
 The "values" of the states (e.g. `const ST_A: usize = 1`) are just arbitrary distinct integers.
-We introduce a special `EOF` character which we will use to "pad" the end of the string: our circuit has a fixed sized, but we want it to accommodate strings of different lengths.
+We introduce a special `EOF` character which we will use to "pad" the end of the string: our circuit has a fixed size, but we want it to accommodate strings of different lengths.
 We also add another transition `ST_DONE -> ST_DONE` for the `EOF` character: you can stay in the `ST_DONE` state forever by consuming the special `EOF` padding character.
 
 If you are still confused, it simply means that we are now matching strings like:
@@ -100,10 +101,10 @@ aaabbc<EOF><EOF><EOF>...<EOF>
 Of some fixed length, where `<EOF>` is a special character.
 
 ```admonish note
-In this example we will just match the regular expression,
+In this example, we will just match the regular expression,
 but in general you want to do something more interesting with the result or restrict the string being matched.
 
-For instance, in [zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata) it is used to extract the senders address from an email after *verifying a DKIM signature* on the email:
+For instance, in [zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata) it is used to extract the sender's address from an email after *verifying a DKIM signature* on the email:
 in this case the string being matched comes with a digital signature (an RSA signature).
 
 In our case, the string ends up in a column and it is trivial to use it for further processing, like hashing it to check a digital signature on it.
@@ -111,7 +112,7 @@ In our case, the string ends up in a column and it is trivial to use it for furt
 
 ## Configuration
 
-In order for us to match against the regular expression we will have the prover supply a table of transitions, we will then look up each transition in a fixed table of valid state transitions.
+In order for us to match against the regular expression, we will have the prover supply a table of transitions, we will then look up each transition in a fixed table of valid state transitions.
 We need two gates:
 
 - A gate to force the current state to be a fixed value: this is used at the start and end, to ensure that the prover starts in the `ST_A` state and ends in the `ST_DONE` state.
@@ -126,7 +127,7 @@ Our configuration step looks as follows:
 
 The new thing to notice is the `meta.lookup_table_column()` function calls:
 these introduce a new column on which we can lookup rows.
-In our case the lookup table will have three columns:
+In our case, the lookup table will have three columns:
 
 1. The current state (e.g. `ST_B`).
 1. The next state (e.g. `ST_C`).
@@ -157,7 +158,7 @@ The new magic is happening in the "transition" gate:
 
 Let's break it down:
 
-- It read the current state, `st_cur`, from the `st` (state column).
+- It reads the current state, `st_cur`, from the `st` (state column).
 - It reads the next state, `st_nxt`, from the `st` (state column).
 - It reads the next character, `ch`, from the `ch` (character column).
 
@@ -195,10 +196,10 @@ It's mostly self-explanatory, but let's go through it:
   - We encode the state as a field element.
   - We encode each (e.g. ASCII) character as a field element in the obvious way.
   - We encode `EOF` as some arbitrary value outside the range of valid characters.
-3. This is then stored `transitions` as a vector of such tuples.
-4. Finally we assign the vector of tuples to the table using `table.assign_cell`.
+3. This is then stored in `transitions` as a vector of such tuples.
+4. Finally, we assign the vector of tuples to the table using `table.assign_cell`.
 
-### Start Contraint
+### Start Constraint
 
 At the first row of our region, we will need to force the state to be `ST_A` (aka. `ST_START`).
 This is done by assigning the fixed column `fix_st` to be `ST_A` and turning on the `q_match` selector:
@@ -211,7 +212,7 @@ Nothing new here, we saw similar code in the section of `Column<Fixed>`.
 
 ### Assign Transitions
 
-The meet of the circuit is in the region where we assign the sequence of states we are transitioning through, as well as the sequence of characters we are consuming:
+The meat of the circuit is in the region where we assign the sequence of states we are transitioning through, as well as the sequence of characters we are consuming:
 
 ```rust,noplaypen
 {{#include ../../halo-hero/examples/regex.rs:region_steps}}
@@ -264,7 +265,7 @@ To avoid this massive table we can use the fact that XOR acts component-wise on 
   (l_1, l_2) \oplus (r_1, r_2) = (l_1 \oplus r_1, l_2 \oplus r_2)
 \\]
 
-Therefore, we can replace a single lookup in a 256x256 table with two lookups in a 16x16 tables.
+Therefore, we can replace a single lookup in a 256x256 table with two lookups in 16x16 tables.
 ```
 
 ```admonish exercise
