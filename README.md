@@ -19,5 +19,6 @@ The book is build using `mdbook` and `mdbook-admonish`:
 ```
 cargo install mdbook
 cargo install mdbook-admonish
+mdbook-admonish install
 mdbook serve
 ```
