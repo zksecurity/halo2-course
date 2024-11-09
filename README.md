@@ -6,6 +6,7 @@ but no specific knowledge of Halo2, PlonK or developing circuits for zkSNARKs.
 
 The book was created as a collaboration between [ZKSecurity](https://zksecurity.xyz) and
 the [Zircuit](https://www.zircuit.com/) development team.
+
 All material, full code examples and the book's source, are available on [GitHub](https://github.com/zksecurity/halo2-course).
 
 ![zks](src/intro/zks-scale.png)

@@ -6,10 +6,10 @@
 
 ## Setup
 
-For this we are going to need a recent nightly version of Rust:
+For this we are going to need Rust `1.67.0` for this:
 
 ```
-$ rustup default nightly
+$ rustup default 1.67.0
 ```
 
 To follow along, create a new Rust project:
@@ -36,6 +36,7 @@ There is a sea of different versions of Halo2 out there:
 - The Privacy Scaling Explorations (PSE) fork which adds KZG support.
 - The Scroll fork which forked from PSE.
 - The Axiom fork which forked from PSE.
+- And more...
 
 However, you write circuits in the same way for all of them.
 
