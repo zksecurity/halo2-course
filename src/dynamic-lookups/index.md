@@ -40,8 +40,8 @@ $$(a, b, a + b)$$
 
 The key insight is that we need only a single row in the table for the instruction we are actually executing:
 all the other lookups can be "nopped out" and the result of the lookup is ignored.
-If every instruction previously required a separate circuit with $m$ gates and we have $n$ instructions,
-the dynamic lookup approach requires only $n$ tables with $m$ rows each whereas the original approach would require \\( n \cdot m \\) gates.
+If every instruction previously required a separate circuit with \\( m \\) gates and we have \\( n \\) instructions,
+the dynamic lookup approach requires only \\( n \\) tables with \\( m \\) rows each whereas the original approach would require \\( n \cdot m \\) gates.
 
 ## Example: Conditional Hashing
 
