@@ -48,7 +48,9 @@ jobs:
         run: cargo install mdbook
 
       - name: install mdbook-admonish
-        run: cargo install mdbook-admonish
+        run: |
+          cargo install mdbook-admonish
+          mdbook-admonish install
 
       - name: build book
         run: mdbook build
