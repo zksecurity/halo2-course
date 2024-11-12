@@ -8,6 +8,6 @@ The book was created as a collaboration between [ZKSecurity](https://zksecurity.
 the [Zircuit](https://www.zircuit.com/) development team.
 All material, full code examples and the book's source, are available on [GitHub](https://github.com/zksecurity/halo2-course).
 
-![zks](/intro/zks-scale.png)
+<img src="/intro/zks-scale-light-themed.png" width="100%">
 
-![zircuit](/intro/zircuit.png)
+<img src="/intro/zircuit-light-themed.png" width="100%">
