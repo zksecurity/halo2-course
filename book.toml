@@ -4,6 +4,7 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Halo Hero"
+site_url = "https://halo2.zksecurity.xyz"
 
 [build]
 extra-watch-dirs = ["halo-hero"]
