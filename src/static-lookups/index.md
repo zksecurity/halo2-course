@@ -175,7 +175,7 @@ Let's break it down:
 
 The layout looks like this:
 
-![Regex](./regex.svg)
+<img src="./regex-light-themed.svg" width="100%">
 
 It then multiplies them all by the selector `q_regex`, meaning:
 
