@@ -11,12 +11,16 @@ Rather than trotting through yet another example with range checks,
 we will explore *lookups* by creating a
 "circuit" that can (very efficiently) match regular expressions.
 Regular expression matching has been used in projects such as [zk-email](https://blog.aayushg.com/zkemail/),
-although the approach outlined here is more efficient than that of [zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata).
+although the approach outlined here is more efficient than that of
+[zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata)
+owing to the power of Halo2.
 
-You might already be thinking that regular expressions are not very efficient to check using a circuit over a finite field,
-and you would be right.
-Fortunately, lookups enable us to implement this kind of very non-field-friendly functionality in an efficient way.
-It might also sound complicated, but in fact, the whole (barebones) circuit fits in just over 200 lines of code.
+You might be thinking that regular expressions are relatively inefficient
+to check using a circuit over a finite field, and you would be right.
+Fortunately, lookups enable us to implement this kind of
+very non-field-friendly functionality in an efficient way.
+It might also sound complicated, but in fact, the whole (barebones)
+circuit fits in just over 200 lines of code.
 
 ## Brief Detour: Regular Expressions
 
@@ -51,7 +55,7 @@ and every edge is labeled with a character.
 You are allowed to move between states if the next character in the string matches the edge label.
 For instance, for our regular expression `a+b+c`, an NFA would look like this:
 
-![Regex](./nfa.svg)
+![Regex](./nfa-light-themed.svg)
 
 Meaning:
 
@@ -65,13 +69,15 @@ Meaning:
 - In state `ST_C`, you can:
   - Only move to `ST_DONE` if the next character is `c`.
 
-For instance, if the string we are matching is `aaabbc`, we would move through the states like this:
+For instance, if the string we are matching is `aaabbc`,
+we would move through the states like this:
 
 ```
 ST_A -> ST_A -> ST_A -> ST_B -> ST_B -> ST_C -> ST_DONE
 ```
 
-Conversely, if you have the string `aaabbb`, you would get stuck in state `ST_B` after the third `b` and not be able to move to `ST_C`.
+Conversely, if you have the string `aaabbb`,
+you would get stuck in state `ST_B` after the third `b` and not be able to move to `ST_C`.
 We can represent this "NFA" as a table of valid state transitions:
 
 | State | Character | Next State |
@@ -89,8 +95,10 @@ In Rust we could encode this table as follows:
 ```
 
 The "values" of the states (e.g. `const ST_A: usize = 1`) are just arbitrary distinct integers.
-We introduce a special `EOF` character which we will use to "pad" the end of the string: our circuit has a fixed size, but we want it to accommodate strings of different lengths.
-We also add another transition `ST_DONE -> ST_DONE` for the `EOF` character: you can stay in the `ST_DONE` state forever by consuming the special `EOF` padding character.
+We introduce a special `EOF` character which we will use to "pad" the end of the string:
+our circuit has a fixed size, but we want it to accommodate strings of different lengths.
+We also add another transition `ST_DONE -> ST_DONE` for the `EOF` character:
+you can stay in the `ST_DONE` state forever by consuming the special `EOF` padding character.
 
 If you are still confused, it simply means that we are now matching strings like:
 
@@ -102,12 +110,15 @@ Of some fixed length, where `<EOF>` is a special character.
 
 ```admonish note
 In this example, we will just match the regular expression,
-but in general you want to do something more interesting with the result or restrict the string being matched.
+but in general you want to do something more interesting
+with the result or restrict the string being matched.
 
-For instance, in [zk-email](https://blog.aayushg.com/zkemail/#regex-with-deterministic-finite-automata) it is used to extract the sender's address from an email after *verifying a DKIM signature* on the email:
+For instance, in [zk-email](https://blog.aayushg.com/zkemail/)
+it is used to extract the sender's address from an email after *verifying a DKIM signature* on the email:
 in this case the string being matched comes with a digital signature (an RSA signature).
 
-In our case, the string ends up in a column and it is trivial to use it for further processing, like hashing it to check a digital signature on it.
+In our case, the string ends up in a column and it is trivial to use it for further processing,
+like hashing it to check a digital signature on it.
 ```
 
 ## Configuration
@@ -212,7 +223,9 @@ Nothing new here, we saw similar code in the section of `Column<Fixed>`.
 
 ### Assign Transitions
 
-The meat of the circuit is in the region where we assign the sequence of states we are transitioning through, as well as the sequence of characters we are consuming:
+The meat of the circuit is in the region where we assign
+the sequence of states we are transitioning through,
+as well as the sequence of characters we are consuming:
 
 ```rust,noplaypen
 {{#include ../../halo-hero/examples/regex.rs:region_steps}}
@@ -243,7 +256,8 @@ we must somehow be able to transition from matching `a`s without consuming an `a
 ```
 
 ```admonish exercise
-Create a circuit which computes a single round of [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption.
+Create a circuit which computes a single round of
+[AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption.
 
 You may ignore the key schedule.
 ```
@@ -269,7 +283,8 @@ Therefore, we can replace a single lookup in a 256x256 table with two lookups in
 ```
 
 ```admonish exercise
-Create a circuit which takes an AES ciphertext as public input (instance) and a key as private input (witness) and checks that the ciphertext decrypts to a known plaintext.
+Create a circuit which takes an AES ciphertext as public input (instance)
+and a key as private input (witness) and checks that the ciphertext decrypts to a known plaintext.
 ```
 
 ```rust,noplaypen

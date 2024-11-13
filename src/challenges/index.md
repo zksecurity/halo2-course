@@ -4,8 +4,9 @@
 
 *"And what is the use of a book," thought Alice, "without pictures or conversations?"*
 
-Because of how PlonK works, it is trivial to add multiple "rounds of interaction" to a proof
-in which the prover commits to some values, the verifier sends a challenge and the prover commits to some more values, etc.
+Because of how PlonK works, it is trivial to add multiple "rounds of interaction"
+in which the prover commits to some values,
+the verifier sends a challenge and the prover commits to some more values, etc.
 This back and forth can be repeated essentially for as many rounds as you like,
 Halo2 (as implemented) supports three such "phases" of interaction.
 
@@ -14,10 +15,10 @@ the prover and verifier passing the spreadsheet back and forth while taking turn
 first the prover fills out some columns in the spreadsheet, then the verifier fills out some columns,
 then the prover fills out some more columns, etc.
 
-
 ## Configuration of Challenges
 
-In Halo2, the "challenges" are used by allocating a `Challenge` which acts very similarly to the columns we have seen so far:
+In Halo2, the "challenges" are used by allocating a `Challenge`
+which acts very similarly to the columns we have seen so far:
 You can think of `Challenge` as a column where *every row contains the same random challenge value*.
 They are allocated with a "Phase" using `challenge_usable_after`:
 
@@ -28,7 +29,8 @@ They are allocated with a "Phase" using `challenge_usable_after`:
 In the example above, we are asking for a challenge that is usable *after the first phase* of the interaction.
 The *first phase* is the "default": it is the implicit phase that we have been using to allocate all the `Advice` columns so far:
 it is the first time the prover gets to fill in values in the spreadsheet.
-This means that only after assigning values to these `Advice` columns, does the prover learn the challenge value (the random value assigned to `alpha`):
+This means that only after assigning values to these `Advice` columns,
+does the prover learn the challenge value (the random value assigned to `alpha`):
 so the first phase values cannot depend on the challenge `alpha` in our example.
 
 ```admonish question
@@ -37,9 +39,11 @@ Stop and think.
 Does it make sense to have other column types, besides `Advice`, in any other phases?
 ```
 
-Before we continue with the challenges, a natural question is: how do we assign `Advice` columns *after* the challenge?
+Before we continue with the challenges, a natural question is:
+how do we assign `Advice` columns *after* the challenge?
 In other words, how do we allow the prover to "respond" to the challenge `alpha`?
-It's straightforward: you simply use `meta.advice_column_in(SecondPhase)` instead of `meta.advice_column()` when allocating the column.
+It's straightforward: you simply use `meta.advice_column_in(SecondPhase)`
+instead of `meta.advice_column()` when allocating the column.
 
 ```rust,noplaypen
 {{#include ../../halo-hero/examples/challenges.rs:phase2_alloc}}
@@ -75,7 +79,8 @@ So we need to do:
 
 - A pass over the circuit, assigning all the `FirstPhase` advice columns.
 - Obtain the first challenge value (`alpha` in our example).
-- Then do another pass over the circuit, assigning all the `SecondPhase` advice columns which might depend on the challenge value.
+- Then do another pass over the circuit, assigning all the `SecondPhase`
+advice columns which might depend on the challenge value.
 - Obtain the second challenge value.
 - etc.
 
@@ -89,7 +94,8 @@ if the challenge is available during this pass the value will be `Value::known` 
 let chal = layouter.get_challenge(self.challenge);
 ```
 
-This allows us to compute `Value`s for the second phase: these will be `Value::unknown` during the first pass and `Value::known` during the second pass.
+This allows us to compute `Value`s for the second phase:
+these will be `Value::unknown` during the first pass and `Value::known` during the second pass.
 For instance:
 
 ```rust
@@ -122,7 +128,8 @@ Create a circuit which verifies Sudoku solutions.
 ```
 
 ```admonish hint
-To verify that every row/column/diagonal/3x3 square must contain exactly one of each number 1-9, you can use the following trick:
+To verify that every row/column/diagonal/3x3 square must contain
+exactly one of each number 1-9, you can use the following trick:
 
 Use the fact that for a set \\( C \\) if you define the polynomials:
 \\[
@@ -137,7 +144,8 @@ Then
 C = \\{ 1, 2, 3, 4, 5, 6, 7, 8, 9 \\} \iff
 f(X) = g(X)
 \\]
-You can then check \\(f(X) = g(X) \\) by evaluating the polynomials at a random challenge \\( \alpha \\) and enforcing \\( f(\alpha) = g(\alpha) \\)
+You can then check \\(f(X) = g(X) \\) by evaluating the polynomials at
+a random challenge \\( \alpha \\) and enforcing \\( f(\alpha) = g(\alpha) \\)
 ```
 
 ```admonish hint

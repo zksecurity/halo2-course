@@ -1,15 +1,6 @@
 # Bonus: Circuit Architecture
 
-<svg width="100%" height="400" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="400" cy="150" r="80" fill="#FFD700" />
-  <rect x="100" y="200" width="300" height="150" fill="#4169E1" transform="rotate(-15)" />
-  <polygon points="600,100 700,150 600,200 500,150" fill="#FF4500" />
-  <line x1="200" y1="50" x2="600" y2="350" stroke="#000000" stroke-width="5" />
-  <ellipse cx="640" cy="280" rx="120" ry="30" fill="#32CD32" transform="rotate(30)" />
-  <path d="M300 300 Q 400 350 500 300" stroke="#FF1493" stroke-width="8" fill="none" />
-  <circle cx="200" cy="100" r="20" fill="#9932CC" />
-  <circle cx="600" cy="300" r="25" fill="#FF6347" />
-</svg>
+<img src="./top-light-themed.svg" width="100%">
 
 We have seen a number of different techniques.
 
@@ -35,15 +26,13 @@ However, there is a better way: this can be achieved with only one multi-scalar 
 Architect a circuit which achieves this.
 ```
 
-<details>
-<summary>Hint 1</summary>
+```admonish hint
 Use a challenge
-</details>
+```
 
-<details>
-<summary>Hint 2</summary>
+```admonish hint
 Exploit the linearity of the inner product.
-</details>
+```
 
 
 ```admonish exercise
@@ -68,37 +57,31 @@ Help design chips for these operations.
 1. How could you combine this with our regular expression matching circuit?
 ```
 
-<details>
-<summary>Hint 1</summary>
+```admonish hint
 Use a column to store the strings.
-</details>
+```
 
-<details>
-<summary>Hint 2</summary>
+```admonish hint
 Use a challenge to compute fingerprints of each string.
 
 Add a gate to ensure that the fingerprints are correctly computed.
-</details>
+```
 
-<details>
-<summary>Hint 3</summary>
+```admonish hint
 Compute on the fingerprints to check that the concatenation is correct.
-</details>
+```
 
-<details>
-<summary>Hint 4</summary>
+```admonish hint
 Add a column containing the length / index of every character in the string.
-</details>
+```
 
-<details>
-<summary>Hint 5</summary>
+```admonish hint
 Decompose the string into three parts: the prefix, the substring, and the suffix.
-</details>
+```
 
-<details>
-<summary>Hint 6</summary>
+```admonish hint
 Use the concatenation gate to extract the substring.
-</details>
+```
 
 ```admonish exercise
 **Exercise:** Battle Ships

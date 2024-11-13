@@ -2,7 +2,7 @@
 
 ![](./top.webp)
 
-*What if I don't know what I want to look up?*
+*"No, no!" said the Queen. "Sentence first—verdict afterwards."*
 
 ## Dynamic Lookups
 
