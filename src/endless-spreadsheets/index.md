@@ -21,7 +21,7 @@ Each column comes along with a type, in the case above:
 This can be visualized as a "spreadsheet" with two columns (and an infinite number of rows):
 
 <center>
-    <img src="./columns.svg" width="50%">
+    <img src="./columns-light-themed.svg" width="50%">
 </center>
 
 The circuit is defined by fixing certain cells in this "spreadsheet"
@@ -50,7 +50,7 @@ This enforces *a global* constraint on the cells in the spreadsheet, i.e. *every
 
 Must be zero. Like this:
 
-![](./gate.svg)
+![](./gate-light-themed.svg)
 
 In other words:
 
@@ -63,7 +63,7 @@ If we did not multiply by a selector (e.g. `q_enable`) the gate *would always be
 By turning selectors on/off we can "program" the spreadsheet to enforce different constraints over different rows -- that's the job of the `synthesize` step in Halo2.
 Observe that at the next row, the current row is the next row of the previous row:
 
-![](./gate-next.svg)
+![](./gate-next-light-themed.svg)
 
 This means that enabling this gate over a sequence of rows will enforce that the `advice` column contains a sequence
 (e, e+1, e+2, ...).
@@ -193,7 +193,7 @@ self.values = Value::known(vec![1, 2, 3, 4, 5, 6])
 The assignment is as follows:
 
 <center>
-    <img src="./region.svg" width="80%">
+    <img src="./region-light-themed.svg" width="80%">
 </center>
 
 ### Exercises
