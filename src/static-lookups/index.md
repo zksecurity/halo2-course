@@ -180,9 +180,9 @@ The layout looks like this:
 It then multiplies them all by the selector `q_regex`, meaning:
 
 - If `q_regex = 0`, then the lookup checks:
-  - `(0, 0, 0)` in `(tbl_st_cur, st_nxt, tbl_ch)`.
+  - `(0, 0, 0)` in `(tbl_st_cur, tbl_st_nxt, tbl_ch)`.
 - If `q_regex = 1`, then the lookup checks:
-  - `(st_cur, st_nxt, ch)` in `(tbl_st_cur, st_nxt, tbl_ch)`.
+  - `(st_cur, st_nxt, ch)` in `(tbl_st_cur, tbl_st_nxt, tbl_ch)`.
 
 This 3-tuple is looked up in our table
 of valid state transitions.
