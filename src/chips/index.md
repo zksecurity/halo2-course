@@ -84,6 +84,12 @@ At this point we are ready to add some methods to our `ArithmeticChip` to create
 
 This is essentially just refactoring the code we saw in the previous sections.
 
+We also need a way to assign a free (unconstrained) witness value into the circuit:
+
+```rust,noplaypen
+{{#include ../../halo-hero/examples/chips.rs:chip-free}}
+```
+
 Finally, we can use the `ArithmeticChip` in the `TestCircuit` during `synthesize`:
 
 ```rust,noplaypen

@@ -66,7 +66,10 @@ impl<F: Field> ChallengeChip<F> {
         let chal = layouter.get_challenge(self.challenge);
         layouter.assign_region(
             || "challenge",
-            |mut region| region.assign_advice(|| "chl", self.advice, 0, || chal),
+            |mut region| {
+                self.q_enable.enable(&mut region, 0)?;
+                region.assign_advice(|| "chl", self.advice, 0, || chal)
+            },
         )
     }
 }

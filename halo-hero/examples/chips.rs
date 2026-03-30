@@ -132,6 +132,7 @@ impl<F: Field> ArithmeticChip<F> {
     }
     // ANCHOR_END: chip-add
 
+    // ANCHOR: chip-free
     fn free(
         &self,
         layouter: &mut impl Layouter<F>,
@@ -151,6 +152,7 @@ impl<F: Field> ArithmeticChip<F> {
             },
         )
     }
+    // ANCHOR_END: chip-free
 }
 
 #[derive(Clone, Debug)]
