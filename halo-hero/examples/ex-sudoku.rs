@@ -42,7 +42,7 @@ const SUDOKU: [[u8; DIM]; DIM] = [
 
 struct TestCircuit<F: Field> {
     _ph: PhantomData<F>,
-    suduko: [[u8; DIM]; DIM],
+    sudoku: [[u8; DIM]; DIM],
     solution: Value<[[u8; DIM]; DIM]>,
 }
 
@@ -478,7 +478,7 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         TestCircuit {
             _ph: PhantomData,
             solution: Value::unknown(),
-            suduko: SUDOKU,
+            sudoku: SUDOKU,
         }
     }
 
@@ -533,12 +533,12 @@ impl<F: PrimeField> Circuit<F> for TestCircuit<F> {
         config: Self::Config, //
         mut layouter: impl Layouter<F>,
     ) -> Result<(), Error> {
-        // load/fix the suduko
+        // load/fix the sudoku
         let mut cells = vec![];
         for i in 0..DIM {
             let mut row = vec![];
             for j in 0..DIM {
-                let cell = match self.suduko[i][j] {
+                let cell = match self.sudoku[i][j] {
                     0 => config.phase1_chip.free(
                         &mut layouter,
                         self.solution.map(|sol| F::from_u128(sol[i][j] as u128)),
@@ -649,7 +649,7 @@ fn main() {
     let circuit = TestCircuit::<Fr> {
         _ph: PhantomData,
         solution: Value::known(SOLUTION),
-        suduko: SUDOKU,
+        sudoku: SUDOKU,
     };
     let prover = MockProver::run(10, &circuit, vec![]).unwrap();
     prover.verify().unwrap();
