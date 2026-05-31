@@ -291,8 +291,8 @@ impl<F: Field> ArithmeticChip<F> {
                 region.constrain_equal(w0.cell(), w1.cell())?;
 
                 region.assign_fixed(|| "c0", self.c0, 0, || Value::known(F::ZERO))?;
-                region.assign_fixed(|| "c1", self.c0, 0, || Value::known(-F::ONE))?;
-                region.assign_fixed(|| "c2", self.c0, 0, || Value::known(F::ZERO))?;
+                region.assign_fixed(|| "c1", self.c1, 0, || Value::known(-F::ONE))?;
+                region.assign_fixed(|| "c2", self.c2, 0, || Value::known(F::ZERO))?;
                 region.assign_fixed(|| "cc", self.cc, 0, || Value::known(F::ZERO))?;
                 region.assign_fixed(|| "cm", self.cm, 0, || Value::known(F::ONE))?;
 
